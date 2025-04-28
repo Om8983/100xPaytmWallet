@@ -12,14 +12,18 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.7.0",
-    "@repo/redux" : "*",
     "@repo/db": "*",
+    "@repo/redux": "*",
+    "@repo/tailwind": "*",
     "@repo/ui": "*",
+    "@tailwindcss/postcss": "^4.1.4",
     "next": "^15.3.0",
+    "postcss": "^8.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-redux": "^9.2.0",
-    "redux": "^1.0.0"
+    "redux": "^1.0.0",
+    "tailwindcss": "^4.1.4"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
