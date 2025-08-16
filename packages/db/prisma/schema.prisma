@@ -15,8 +15,34 @@ datasource db {
 }
 
 model User {
-  id       String @id @default(uuid())
-  email    String @unique
-  password String
-  googleID String?
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
+  password  String
+  googleID  String?
+  Balance   Balance[]
+  OnRamping OnRamping?
+}
+
+model Balance {
+  id      Int  @id @default(autoincrement())
+  balance Int
+  userId  Int  @unique
+  locked  Int
+  user    User @relation(fields: [userId], references: [id])
+}
+
+model OnRamping {
+  id       Int          @id @default(autoincrement())
+  status   OnRampStatus
+  amount   Int
+  token    String       @unique
+  userId   Int          @unique
+  provider String
+  user     User         @relation(fields: [userId], references: [id])
+}
+
+enum OnRampStatus {
+  Processing
+  Failure
+  Success
 }
