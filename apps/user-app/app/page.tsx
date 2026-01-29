@@ -1,16 +1,9 @@
-"use client"
-import { redirect } from "next/navigation";
-import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { Appbar } from "@repo/ui/Appbar"
 
-type Prop = {
-  email: string, password: string
-}
-
-export default function ThemeImage() {
+export default function App() {
   return (
     <>
-      ThemeImage
+      <Appbar></Appbar>
     </>
   )
 };
