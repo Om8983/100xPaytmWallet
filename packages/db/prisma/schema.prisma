@@ -5,40 +5,44 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  provider   = "prisma-client-js"
+  output     = "../generated/prisma"
+  engineType = "library"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
-  id        Int        @id @default(autoincrement())
-  email     String     @unique
-  password  String
+  id        String         @id //here we will be generating the jwt token and that will be stored as id of the user. And later on i will use the same to validate multiple device login.
+  email     String         @unique
+  password  String?
   googleID  String?
   Balance   Balance[]
   OnRamping OnRamping?
+  Sender    PeerTransfer[] @relation("SenderTransfer")
+  Receiver  PeerTransfer[] @relation("ReceiverTransfer")
 }
 
 model Balance {
-  id      Int  @id @default(autoincrement())
-  balance Int
-  userId  Int  @unique
-  locked  Int
-  user    User @relation(fields: [userId], references: [id])
+  id      String @id @default(uuid())
+  balance Int    @default(0)
+  userId  String @unique
+  locked  Int    @default(0)
+  user    User   @relation(fields: [userId], references: [id])
 }
 
 model OnRamping {
-  id       Int          @id @default(autoincrement())
-  status   OnRampStatus
-  amount   Int
-  token    String       @unique
-  userId   Int          @unique
-  provider String
-  user     User         @relation(fields: [userId], references: [id])
+  id        String       @id @default(uuid())
+  status    OnRampStatus
+  amount    Int
+  token     String       @unique
+  userId    String       @unique
+  provider  String
+  startTime DateTime
+  endTime   DateTime?
+  user      User         @relation(fields: [userId], references: [id])
 }
 
 enum OnRampStatus {
@@ -46,3 +50,47 @@ enum OnRampStatus {
   Failure
   Success
 }
+
+// in peer to peer transfer the main fields that we will prolly require are
+// -> amount to be transferred
+// -> who sent
+// -> who received
+// -> status  of the payment
+// -> send at time
+
+model PeerTransfer {
+  id              String     @id @default(uuid())
+  status          PeerStatus
+  amount          Int
+  idempotency_key String //will be generated randomly by frontend and stored here.
+  receiverId      String // @unique.   the reason i commented this out cuz if the user wants to send money to the same user again then it will create a conflict while transfering since it is suppose to be unique in the table. If you still have issues understanding this then please refer the bottom of the file.
+  senderId        String //    @unique
+
+  startTime DateTime  @default(now())
+  endTime   DateTime?
+
+  user     User @relation("SenderTransfer", fields: [senderId], references: [id])
+  receiver User @relation("ReceiverTransfer", fields: [receiverId], references: [id])
+}
+
+enum PeerStatus {
+  SUCCESS
+  PENDING
+  FAILED
+}
+
+//(from 100xmedium) the explanation of not providing uniqueness to sender and receiver's id. Since the repeated entry to the db won't be possible if i mark both as unique
+// model Relationships {
+//   id           String  @id @default(uuid())
+//   following    String?
+//   followers    String?
+//   followingIds User?   @relation("Following", fields: [following], references: [id])
+//   followerIds  User?   @relation("Followers", fields: [followers], references: [id])
+
+//   @@unique([following, followers])
+// }
+
+// just to let you know the @@unique  represents that the relation with the 2 should stay unique. There must not be any duplicate ones that already exist. 
+// For Ex. if a user has already upvoted for the post
+// user1 --> post1
+// then user one won't be able to again upvote rather it would be counted as devote and will be deleted from Upvotes 
