@@ -2,6 +2,32 @@ import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@repo/db";
 import bcrypt from "bcryptjs";
+import { importJWK, SignJWT } from "jose";
+import { randomUUID } from "crypto";
+
+// now we have to make additional changes in order to ensure that only one user is being signed in per tab
+// 1. create generateJWT function which will ensure creating jwt token of our choice of fields
+// 2. also return token so that i can extract it in the middleware and check whether its the latest one across the database via an api call
+
+type userTokenDetails = {
+  email: string;
+};
+const generateJWT = async (user: userTokenDetails) => {
+  if (!user) return null;
+  const secret = process.env.JWT_SECRET || "secret";
+
+  const jwk = await importJWK({ k: secret, alg: "HS256", kty: "oct" });
+
+  const jwt = await new SignJWT({
+    ...user,
+    iat: Math.floor(Date.now() / 1000),
+    jti: randomUUID(), // Adding a unique jti to ensure each token is unique. This helps generate a unique jwtToken on every login
+  })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("365d")
+    .sign(jwk);
+  return jwt;
+};
 
 export const AuthOptions = {
   providers: [
@@ -35,27 +61,35 @@ export const AuthOptions = {
               credentials.password,
               saltRounds,
             );
-            // storing new user to db
-            const newUser = await prisma.user.create({
-              data: {
-                email: credentials.email,
-                password: newHashedPass,
-                Balance: {
-                  create: {},
+            try {
+              const token = await generateJWT({ email: credentials.email });
+              // storing new user to db
+              const newUser = await prisma.user.create({
+                data: {
+                  email: credentials.email as string,
+                  password: newHashedPass,
+                  token: token as string,
+                  Balance: {
+                    create: {},
+                  },
                 },
-              },
-              select: {
-                id: true,
-                email: true,
-              },
-            });
-            return {
-              id: newUser.id,
-              email: newUser.email,
-            };
+                select: {
+                  id: true,
+                  email: true,
+                },
+              });
+              return {
+                id: newUser.id,
+                email: newUser.email,
+                token: token,
+              };
+            } catch (error) {
+              console.log(error);
+              return null;
+            }
           }
           // if user exist check the password with respect to the hashed password stored in the database
-          const dbHashedPass = existingUser.password;
+          const dbHashedPass = existingUser?.password;
           const isPassCorrect = await bcrypt.compare(
             credentials.password,
             dbHashedPass ?? "",
@@ -64,10 +98,29 @@ export const AuthOptions = {
           if (!isPassCorrect) {
             return null;
           }
-          return {
-            id: existingUser.id,
-            email: existingUser.email,
-          } as any;
+          try {
+            const token: string = (await generateJWT({
+              email: existingUser.email,
+            })) as string;
+
+            await prisma.user.update({
+              where: {
+                id: existingUser.id,
+              },
+              data: {
+                token: token,
+              },
+            });
+
+            return {
+              id: existingUser.id,
+              email: existingUser.email,
+              token: token,
+            } as any;
+          } catch (error) {
+            console.log(error);
+            return null;
+          }
         } catch (e) {
           return null;
         }
@@ -76,16 +129,19 @@ export const AuthOptions = {
   ],
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-    async session({ session, token, user }: any) {
-      // Send properties to the client, like an access_token and user id from a provider.
-      session.user.id = token.sub;
-      return session;
-    },
-    async jwt({ token, account, profile }: any) {
-      if (account) {
+    async jwt({ token, user, profile }: any) {
+      // we have used a condition here becuase the "user" object is only present on the first login
+      if (user) {
         token.id = token.sub;
+        token.jwtToken = user?.token;
       }
       return token;
+    },
+    async session({ session, token, user }: any) {
+      // the above jwt signed token is then passed down to the session where we extract the jwt token and assign to the client side session
+      session.user.id = token.sub;
+      session.user.jwtToken = token.jwtToken;
+      return session;
     },
   },
   pages: {

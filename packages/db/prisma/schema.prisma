@@ -15,8 +15,9 @@ datasource db {
 }
 
 model User {
-  id        String         @id //here we will be generating the jwt token and that will be stored as id of the user. And later on i will use the same to validate multiple device login.
+  id        String         @id @default(uuid())
   email     String         @unique
+  token     String         @unique // to store the user's jwt token to make sure single login.
   password  String?
   googleID  String?
   Balance   Balance[]
