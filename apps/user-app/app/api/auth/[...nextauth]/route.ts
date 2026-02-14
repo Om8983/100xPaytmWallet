@@ -34,15 +34,29 @@ export const AuthOptions = {
     CredentialsProvider({
       name: "Email",
       credentials: {
-        email: { label: "email", placeholder: "Enter Email", type: "email" },
+        email: { label: "Email", placeholder: "Enter Email", type: "email" },
+        phone: {
+          label: "Phone",
+          placeholder: "example : 1234567890",
+          type: "tel",
+        },
         password: {
-          label: "password",
+          label: "Password",
           placeholder: "*******",
           type: "password",
         },
       },
       async authorize(credentials: any) {
         try {
+          console.log("credentials", credentials);
+          if (
+            !credentials?.password ||
+            !credentials?.email ||
+            !credentials?.phone
+          ) {
+            return null;
+          }
+          console.log("entered");
           const existingUser = await prisma.user.findFirst({
             where: {
               email: credentials?.email,
@@ -50,10 +64,13 @@ export const AuthOptions = {
             select: {
               id: true,
               email: true,
+              phoneNumber: true,
               password: true,
             },
           });
+          console.log("existingUser", existingUser);
           if (!existingUser) {
+            console.log("notexisting");
             // here i should send an email verification link and prompt the user to follow that link in order to check if email is valid
             // generating salt rounds and hashing new user password
             const saltRounds = await bcrypt.genSalt(10);
@@ -64,9 +81,13 @@ export const AuthOptions = {
             try {
               const token = await generateJWT({ email: credentials.email });
               // storing new user to db
+              console.log("creating");
+              const phone = Number(credentials.phone);
+              console.log("phone", phone);
               const newUser = await prisma.user.create({
                 data: {
                   email: credentials.email as string,
+                  phoneNumber: phone,
                   password: newHashedPass,
                   token: token as string,
                   Balance: {
@@ -75,19 +96,25 @@ export const AuthOptions = {
                 },
                 select: {
                   id: true,
+                  phoneNumber: true,
                   email: true,
                 },
               });
+              console.log("newUser", newUser);
               return {
                 id: newUser.id,
                 email: newUser.email,
+                phone: newUser.phoneNumber,
                 token: token,
               };
             } catch (error) {
-              console.log(error);
               return null;
             }
           }
+          if (Number(credentials?.phone) !== existingUser?.phoneNumber) {
+            return null;
+          }
+          console.log("phone check passed");
           // if user exist check the password with respect to the hashed password stored in the database
           const dbHashedPass = existingUser?.password;
           const isPassCorrect = await bcrypt.compare(
@@ -98,6 +125,7 @@ export const AuthOptions = {
           if (!isPassCorrect) {
             return null;
           }
+          console.log("pass checked");
           try {
             const token: string = (await generateJWT({
               email: existingUser.email,
@@ -111,14 +139,13 @@ export const AuthOptions = {
                 token: token,
               },
             });
-
             return {
               id: existingUser.id,
               email: existingUser.email,
+              phone: existingUser.phoneNumber,
               token: token,
             } as any;
           } catch (error) {
-            console.log(error);
             return null;
           }
         } catch (e) {
@@ -132,7 +159,7 @@ export const AuthOptions = {
     async jwt({ token, user, profile }: any) {
       // we have used a condition here becuase the "user" object is only present on the first login
       if (user) {
-        token.id = token.sub;
+        token.id = user?.id;
         token.jwtToken = user?.token;
       }
       return token;

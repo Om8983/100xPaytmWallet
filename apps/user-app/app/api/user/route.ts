@@ -1,7 +1,7 @@
 import { prisma } from "@repo/db";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(req: NextRequest) {
+export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     // Getting search params from the URL
     const searchParams = req.nextUrl.searchParams;
