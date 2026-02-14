@@ -21,5 +21,11 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "motion": "^12.33.0",
+    "next": "^16.1.6",
+    "react-hook-form": "^7.71.1",
+    "sonner": "^2.0.7"
+  }
 }

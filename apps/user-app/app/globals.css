@@ -1,3 +1,86 @@
+/* subheading font fam */
+@font-face {
+  font-family: "parareg";
+  src: url("../public/subtext/parareg.otf") format("opentype");
+  font-style: regular;
+}
+@font-face {
+  font-family: "paralight";
+  src: url("../public/subtext/paralight.otf") format("opentype");
+  font-style: light;
+}
+@font-face {
+  font-family: "paramed";
+  src: url("../public/subtext/paramed.otf") format("opentype");
+  font-style: medium;
+}
+
+/* heading font fam */
+@font-face {
+  font-family: "headreg";
+  src: url("../public/heading/headreg.otf") format("opentype");
+  font-style: regular;
+}
+@font-face {
+  font-family: "headmed";
+  src: url("../public/heading/headmed.otf") format("opentype");
+  font-style: medium;
+}
+@font-face {
+  font-family: "headsemi";
+  src: url("../public/heading/headsemi.otf") format("opentype");
+  font-style: semibold;
+}
+@font-face {
+  font-family: "headbold";
+  src: url("../public/heading/headbold.otf") format("opentype");
+  font-style: bold;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.11);
+  backdrop-filter: blur(50px);
+  -webkit-backdrop-filter: blur(50px);
+  border-radius: 20px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 0 26px 13px rgba(255, 255, 255, 1.3);
+  position: absolute;
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.8),
+    transparent
+  );
+}
+
+.glass-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.8),
+    transparent,
+    rgba(255, 255, 255, 0.3)
+  );
+}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import Providers from "../providers";
+import { Appbar } from "@repo/ui/Appbar";
 
 
 const geistSans = localFont({
@@ -26,9 +27,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <Providers>
-          {children}
-        </Providers>
+        <div className="absolute top-0 z-[-2] h-screen w-screen bg-white bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))]">
+          <Providers>
+            <Appbar></Appbar>
+            {children}
+          </Providers>
+        </div>
       </body>
     </html>
   );
