@@ -15,15 +15,16 @@ datasource db {
 }
 
 model User {
-  id        String         @id @default(uuid())
-  email     String         @unique
-  token     String         @unique // to store the user's jwt token to make sure single login.
-  password  String?
-  googleID  String?
-  Balance   Balance[]
-  OnRamping OnRamping?
-  Sender    PeerTransfer[] @relation("SenderTransfer")
-  Receiver  PeerTransfer[] @relation("ReceiverTransfer")
+  id          String         @id @default(uuid())
+  email       String         @unique
+  phoneNumber Int            @unique
+  token       String         @unique // to store the user's jwt token to make sure single login.
+  password    String?
+  googleID    String?
+  Balance     Balance?
+  OnRamping   OnRamping[] // this means a single user can have multiple onramp transactions
+  Sender      PeerTransfer[] @relation("SenderTransfer")
+  Receiver    PeerTransfer[] @relation("ReceiverTransfer")
 }
 
 model Balance {
@@ -38,8 +39,8 @@ model OnRamping {
   id        String       @id @default(uuid())
   status    OnRampStatus
   amount    Int
-  token     String       @unique
-  userId    String       @unique
+  token     String       @unique // generally this is supposed to be the token that the bank server gives us and then based on that we update the user balances across that payment succses and failure...Well for now we can consider it as the token containing an order id or the payment id or refrence id...
+  userId    String //@unique : bcus making it unique means a user can make an onramp transaction only once not mutliple times.
   provider  String
   startTime DateTime
   endTime   DateTime?
