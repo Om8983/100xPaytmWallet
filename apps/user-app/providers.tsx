@@ -15,3 +15,13 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         </SessionProvider>
     )
 }
+
+
+
+// .svg-masking {
+//   -webkit-mask: url("/svgVector.svg") center / contain no-repeat,
+//     linear-gradient(#000000 0 0);
+//   mask-size: 7rem;
+//   mask-position: bottom right;
+//   mask-composite: exclude;
+// } 
