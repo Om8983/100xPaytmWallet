@@ -21,6 +21,7 @@
     "typescript": "5.8.2"
   },
   "dependencies": {
+    "@tabler/icons-react": "^3.37.1",
     "@tailwindcss/postcss": "^4.1.4",
     "postcss": "^8.5.3",
     "react": "^19.1.0",

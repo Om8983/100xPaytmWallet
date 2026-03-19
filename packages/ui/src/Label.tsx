@@ -15,7 +15,7 @@ export const Label = ({ variant, className, animate, initial, text, forField }: 
             initial={initial}
             animate={animate}
             htmlFor={forField}
-            className={`${className} mb-1 font-[paramed] text-gray-500`}>
+            className={`${className} mb-1 font-light text-sm`}>
             {text}
         </motion.label>
     )
