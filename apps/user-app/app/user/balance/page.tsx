@@ -1,29 +1,23 @@
-import { prisma } from "@repo/db"
+import { PageTopBar } from "../../../components/PageTopBar"
 import { getServerSession } from "next-auth"
 import { AuthOptions } from "../../api/auth/[...nextauth]/route"
-import { Button } from "@repo/ui/button"
-import Link from "next/link"
-import { AmountCard } from "@repo/ui/AmountCard"
+import { PageBaseUi } from "@repo/ui/PageBaseUi"
+import { prisma } from "@repo/db"
+import { TransactionTable } from "../../../components/BalanceComp/TransactionTable"
+import { AmountCards } from "../../../components/BalanceComp/AmountCard/AmountCards"
+
 export default async function page() {
     const session = await getServerSession(AuthOptions)
-    const userBalance = await prisma.user.findFirst({
-        where: {
-            email: session.user.email
-        },
+    const user_Balance_Txn = await prisma.user.findFirst({
+        where: { email: session?.user?.email || "" },
         select: {
-            token: true,
-            email: true,
-            Balance: {
-                select: {
-                    balance: true,
-                    locked: true
-                }
-            },
+            Balance: { select: { balance: true, locked: true } },
             OnRamping: {
                 select: {
                     amount: true,
                     provider: true,
                     startTime: true,
+                    endTime: true,
                     status: true,
                     token: true,
                 }
@@ -31,11 +25,15 @@ export default async function page() {
         }
     })
     return (
-        <div className="p-5">
-            {/* <Link href="/" className="mt-10">
-                <Button text="Dashboard" loading={false} ></Button>
-            </Link > */}
-            <AmountCard title="Total Income" className="svg-masking" amount={userBalance?.Balance?.balance as number} />
-        </div>
+        <PageBaseUi>
+            <PageTopBar title="Balance" />
+            <div className="flex h-full px-5 flex-col gap-3 ">
+                <AmountCards />
+                <div className="">
+                    <p className="text-3xl mb-2">Transactions</p>
+                    <TransactionTable user_txnData={user_Balance_Txn?.OnRamping || []} />
+                </div>
+            </div>
+        </PageBaseUi>
     )
 }

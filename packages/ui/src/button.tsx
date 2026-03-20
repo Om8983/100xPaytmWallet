@@ -43,7 +43,7 @@ export const Button = ({ text, className, loading, handleClick, isFormFilled, is
         }
       }}
       disabled={loading}
-      className={` text-center  py-2 rounded-lg transition ease-in-out bg-black text-white font-medium outline-none ${className} `}>
+      className={` text-center  py-2 rounded-lg transition ease-in-out font-medium outline-none ${className} `}>
       <div className="flex items-center justify-center gap-2">
         <span className="flex gap-2 items-center" >
           {text} {loading ? <></> : icon}
