@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import Providers from "../providers";
-import { Appbar } from "@repo/ui/Appbar";
-import Sidebar from "../components/Sidebar";
 
 
 const geistSans = localFont({
@@ -28,21 +26,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <Providers>
-          <div className="min-h-screen bg-white
-      bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))]">
-
-            <Appbar />
-
-            <div className="flex">
-              <Sidebar />
-              <main className="flex-1 p-6">
-                {children}
-              </main>
-            </div>
-
-          </div>
-        </Providers>
+        <main className="" >
+          <Providers >
+            {children}
+          </Providers>
+        </main>
       </body>
     </html>
   );
