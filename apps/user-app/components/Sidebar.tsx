@@ -133,7 +133,7 @@ const Sidebar = () => {
                                         loading={loading}
                                         text='Logout'
                                         icon={<IconLogout size={20} />}
-                                        className={`${loading && "bg-black/80"} w-full h-auto hover:bg-black/80`}
+                                        className={`${loading && "bg-black/80"} w-full h-auto bg-black text-white hover:bg-black/80`}
                                     />
                                 }
                             </div>
