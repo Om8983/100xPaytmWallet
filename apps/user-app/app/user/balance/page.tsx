@@ -22,16 +22,27 @@ export default async function page() {
                     token: true,
                 }
             },
+            Sender: true,
+            Receiver: true,
         }
     })
+    const tableColumns = [
+        { key: "txn_id", label: "Transaction Id" },
+        { key: "amount", label: "Amount" },
+        { key: "txn_status", label: "Status" },
+        { key: "provider", label: "Provider" },
+        { key: "start_time", label: "Created At" },
+        { key: "end_time", label: "Completed At" },
+    ]
+
     return (
         <PageBaseUi>
             <PageTopBar title="Balance" />
             <div className="flex h-full px-5 flex-col gap-3 ">
-                <AmountCards />
+                <AmountCards totalBalance={user_Balance_Txn?.Balance?.balance} />
                 <div className="">
                     <p className="text-3xl mb-2">Transactions</p>
-                    <TransactionTable user_txnData={user_Balance_Txn?.OnRamping || []} />
+                    <TransactionTable columns={tableColumns} user_txnData={user_Balance_Txn?.OnRamping || []} />
                 </div>
             </div>
         </PageBaseUi>
