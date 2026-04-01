@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "OnRamping" ALTER COLUMN "startTime" SET DEFAULT CURRENT_TIMESTAMP;

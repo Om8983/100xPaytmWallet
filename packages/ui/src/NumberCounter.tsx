@@ -9,8 +9,6 @@ interface NumberCounterProps {
     duration?: number;
     decimals?: number;
     className?: string;
-    suffix?: string;
-    prefix?: string;
 }
 
 export const NumberCounter = ({
@@ -19,8 +17,7 @@ export const NumberCounter = ({
     duration = 2,
     decimals = 0,
     className = '',
-    suffix = '',
-    prefix = '',
+    // suffix = '',
 }: NumberCounterProps) => {
     const ref = useRef<HTMLSpanElement>(null);
 
@@ -34,7 +31,8 @@ export const NumberCounter = ({
 
         const animation = (value: number) => {
             if (ref.current) {
-                ref.current.textContent = `${prefix}${value.toFixed(decimals)}${suffix}`;
+                const formatted = Number(value.toFixed(decimals)).toLocaleString();
+                ref.current.textContent = formatted;
             }
         };
 
@@ -62,7 +60,7 @@ export const NumberCounter = ({
         return () => {
             cancelAnimationFrame(animationFrameId);
         };
-    }, [from, to, duration, decimals, prefix, suffix]);
+    }, [from, to, duration, decimals,]);
 
     return (
         <motion.span
@@ -72,9 +70,8 @@ export const NumberCounter = ({
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, ease: 'easeOut' }}
         >
-            {prefix}
-            {from}
-            {suffix}
+
+            {Number(from.toFixed(decimals)).toLocaleString()}
         </motion.span>
     );
 }

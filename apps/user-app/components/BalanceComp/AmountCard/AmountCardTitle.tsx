@@ -12,7 +12,7 @@ export const AmountCardTitle = ({ title, showIcon, iconStyle, classname, childre
         <>
             <div className="flex flex-col justify-between h-full gap-3">
                 <div className={`tracking-wider font-light text-xl  ${classname}`}>{title}</div>
-                <div className={`mt-2 text-3xl ${classname}`}>
+                <div className={`mt-2 text-4xl font-medium ${classname}`}>
                     {/* {user_Balance_Txn?.Balance?.balance ?? 0} */}
                     {children}
                     {/* 5 */}
