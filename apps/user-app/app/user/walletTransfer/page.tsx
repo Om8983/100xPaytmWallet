@@ -85,7 +85,7 @@ export default function page({ walletBalance }: WalletTransferProps) {
                             />
                         </AmountCardContent>
                     </AmountCardContainer>
-                    <AmountCardContainer className='bg-white w-[59rem]' containerClassname='w-[59rem]' id='spendingChart' cardRefs={cardRefs}>
+                    <AmountCardContainer className='bg-white w-[59rem]' absoluteContainerClassname='w-[59rem]' id='spendingChart' cardRefs={cardRefs}>
                         <SpendingChart />
                     </AmountCardContainer>
                 </div>
