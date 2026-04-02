@@ -26,12 +26,12 @@ const Sidebar = () => {
         },
         {
             path: '/user/p2p',
-            title: 'P2P Transfer',
+            title: 'Peer-To-Peer',
             icon: <IconTrendingUp size={20} />
         },
         {
-            path: '/user/bankTransfer',
-            title: 'Bank Transfer',
+            path: '/user/walletTransfer',
+            title: 'Wallet',
             icon: <IconBuildingBank size={20} />
         }
     ]
