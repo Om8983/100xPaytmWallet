@@ -3,22 +3,20 @@ import React from 'react'
 import { THead } from "@repo/ui/THead"
 import { TBody } from "@repo/ui/TBody"
 
-type TableProps = {
+type TableProps<T> = {
+    txn_data: T[],
     columns: {
         key: string,
         label: string
-    }[],
-    txn_data: {
-
     }[]
 }
 
-export const Table = ({ columns, txn_data }: TableProps) => {
+export const Table = <T,>({ columns, txn_data }: TableProps<T>) => {
 
     return (
         <table className='w-full'>
             <THead header={columns.map(c => c.label)} />
-            <TBody body={txn_data} columns={columns} />
+            <TBody<T> body={txn_data} columns={columns} />
         </table>
     )
 }

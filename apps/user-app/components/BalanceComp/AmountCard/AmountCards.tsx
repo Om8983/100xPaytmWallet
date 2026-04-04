@@ -7,7 +7,7 @@ import { Button } from '@repo/ui/button'
 import { IconCircleCheckFilled, IconCurrencyRupee } from '@tabler/icons-react'
 import { AmountCardContainer } from './AmountCardContainer';
 import { NumberCounter } from "@repo/ui/NumberCounter"
-import getUserBalance from '../../../app/actions/getUserBalance';
+import getUserBalance from '../../../app/actions/action';
 import { toast } from 'sonner';
 
 

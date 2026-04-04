@@ -114,10 +114,11 @@ import React, { useRef, useCallback } from "react";
 import { motion } from "motion/react";
 
 type AmountCardContainerProps = {
-    children: React.ReactNode;
+    children?: React.ReactNode;
     id: string;
     className?: string;
     cardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
+    absoluteContainerClassname?: string;
 };
 
 // const PROXIMITY_THRESHOLD = 150; // px — how far outside the card cursor can be and still show glow
@@ -145,7 +146,7 @@ const GRADIENT = `
 
 export const AmountCardContainer =
     React.memo(
-        ({ children, id, className, cardRefs }: AmountCardContainerProps) => {
+        ({ children, id, className, cardRefs, absoluteContainerClassname }: AmountCardContainerProps) => {
             const glowRef = useRef<HTMLDivElement>(null);
 
             return (
@@ -154,7 +155,7 @@ export const AmountCardContainer =
                     ref={(el) => {
                         cardRefs.current[id] = el;
                     }}
-                    className="relative lg:w-[400px] lg:h-[200px] sm:w-[100px] sm:h-[60px] rounded-2xl"
+                    className={`relative lg:w-[400px] lg:h-[200px] sm:w-[100px] sm:h-[60px] rounded-2xl `}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, ease: "easeInOut" }}
@@ -179,7 +180,7 @@ export const AmountCardContainer =
                         }}
                     >
                         <div
-                            className="absolute rounded-[inherit]"
+                            className={`absolute rounded-[inherit] ${absoluteContainerClassname}`}
                             style={{
                                 inset: `calc(-1 * ${BORDER_WIDTH})`,
                                 border: `${BORDER_WIDTH} solid transparent`,
