@@ -4,14 +4,15 @@ import { useEffect } from "react";
 interface ButtonProps {
   text: string;
   className?: string;
-  loading: boolean;
+  loading?: boolean;
   isFormFilled?: boolean;
   isLogin?: boolean;
   handleClick?: () => void;
-  icon: React.ReactNode
+  icon: React.ReactNode;
+  disabled?: boolean;
 }
 
-export const Button = ({ text, className, loading, handleClick, isFormFilled, isLogin = false, icon }: ButtonProps) => {
+export const Button = ({ text, className, loading, handleClick, isFormFilled, isLogin = false, icon, disabled }: ButtonProps) => {
   const controls = useAnimationControls()
   useEffect(() => {
     controls.start({
@@ -42,7 +43,7 @@ export const Button = ({ text, className, loading, handleClick, isFormFilled, is
           handleClick?.()
         }
       }}
-      disabled={loading}
+      disabled={loading || disabled}
       className={` text-center  py-2 rounded-lg transition ease-in-out font-medium outline-none ${className} `}>
       <div className="flex items-center justify-center gap-2">
         <span className="flex gap-2 items-center" >

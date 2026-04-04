@@ -60,7 +60,7 @@ export default function page({ walletBalance }: WalletTransferProps) {
                             classname="text-white" >
                             <div className='flex gap-1 items-center mb-1'>
                                 <IconCurrencyRupee size={36} />
-                                {isHidden && "****"}
+                                {!isHidden && "****"}
                                 {/* {loading && (
                             <span className="relative overflow-hidden w-20 h-7 rounded-md bg-white/20">
                                 <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-[shimmer_1.2s_infinite]" />
