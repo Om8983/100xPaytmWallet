@@ -17,7 +17,7 @@ datasource db {
 model User {
   id          String         @id @default(uuid())
   email       String         @unique
-  phoneNumber Int            @unique
+  phoneNumber String         @unique
   token       String         @unique // to store the user's jwt token to make sure single login.
   password    String?
   googleID    String?
