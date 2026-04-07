@@ -2,12 +2,7 @@
 
 import { prisma } from "@repo/db";
 import { getUserOrThrow } from "../../../lib/auth/utils";
-type SessionData = {
-  user: {
-    id: string;
-    email: string;
-  };
-};
+import { PROVIDER } from "../../../../../packages/db/generated/prisma";
 
 export type P2PTxnData = {
   amount: number;
@@ -109,5 +104,121 @@ export const getBalanceTxnData = async (): Promise<OnRampTxnData[]> => {
     return mappedData;
   } catch (error) {
     throw error;
+  }
+};
+
+type WalletProps = {
+  amount: number;
+  bankAcc: PROVIDER;
+};
+// endpoint that ensures of adding money to the users wallet balance from the respective bank account
+export const addMoneyToWallet = async ({ amount, bankAcc }: WalletProps) => {
+  try {
+    const user = await getUserOrThrow();
+    const userId = user?.id;
+    if (!bankAcc || !amount) {
+      // return NextResponse.json({ msg: "Invalid Inputs" }, { status: 400 });
+      return {
+        success: false,
+        token: null,
+        msg: "Invalid Inputs!",
+      };
+    }
+    const token = crypto.randomUUID();
+    const result = await prisma.$transaction(async (txn) => {
+      const createPayment = await txn.onRamping.create({
+        data: {
+          userId: userId,
+          status: "Processing",
+          provider: bankAcc,
+          amount: amount * 100, // to avoid the decimal values being stored to the database.
+          token: `TXN_${token}`,
+        },
+      });
+      if (!createPayment) {
+        return false;
+      }
+      return true;
+    });
+    if (!result) {
+      return {
+        success: false,
+        token: null,
+        msg: "Internal Server Error. Unable to create payment.",
+      };
+    }
+
+    return {
+      success: true,
+      token: token,
+      msg: "Transaction Successfull.",
+    };
+  } catch (error) {
+    throw new Error();
+  }
+};
+
+export const confirmTxnStatus = async ({
+  token,
+  amount,
+}: {
+  token: string;
+  amount: number;
+}) => {
+  try {
+    const userSession = await getUserOrThrow();
+    const userId = userSession?.id;
+    if (!amount && !token) {
+      return {
+        msg: "Payment Failed",
+        success: false,
+      };
+    }
+    const result = await prisma.$transaction(async (txn) => {
+      // updating user balance.
+      const updateBalance = await txn.balance.update({
+        where: {
+          userId: userId,
+        },
+        data: {
+          balance: { increment: amount },
+        },
+      });
+      if (!updateBalance) {
+        await txn.onRamping.update({
+          where: {
+            userId: userId,
+            token: token,
+          },
+          data: {
+            status: "Failure",
+            endTime: new Date(),
+          },
+        });
+        return false;
+      }
+      await txn.onRamping.update({
+        where: {
+          userId: userId,
+          token: token,
+        },
+        data: {
+          status: "Success",
+          endTime: new Date(),
+        },
+      });
+    });
+    if (!result) {
+      return {
+        msg: "Payment Failed.",
+        success: false,
+      };
+    }
+    return {
+      msg: "Payment Success.",
+      success: true,
+    };
+  } catch (error) {
+    throw new Error();
   }
 };
