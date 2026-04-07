@@ -1,14 +1,13 @@
 "use server";
 import { prisma } from "@repo/db";
-import { getServerSession } from "next-auth";
-import { AuthOptions } from "../api/auth/[...nextauth]/route";
+import { getUserOrThrow } from "../../../lib/auth/utils";
 
 export default async function getUserBalance() {
-  const session = await getServerSession(AuthOptions);
+  const userSession = await getUserOrThrow();
   try {
     const user = await prisma.user.findFirst({
       where: {
-        id: session?.user?.id,
+        id: userSession?.id,
       },
       select: {
         Balance: {

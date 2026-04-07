@@ -18,7 +18,7 @@ export const Dropdown = ({ show, setShow, className, children }: DropdownProps) 
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: 4, opacity: 0 }}
                     transition={{ duration: 0.2, ease: "easeIn" }}
-                    className={`absolute w-max right-0 -bottom-[6rem] flex flex-col gap-2 justify-start z-40 bg-white border-[1px] border-neutral-200 rounded-md py-2 px-1 shadow-md  ${className}`}>
+                    className={`absolute right-0 -bottom-[6rem] flex flex-col gap-2 justify-start z-40 bg-white border-[1px] border-neutral-200 rounded-md py-2 px-1 shadow-md  ${className}`}>
                     {children}
                 </motion.div>
             }

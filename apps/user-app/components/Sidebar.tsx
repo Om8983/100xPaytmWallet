@@ -31,7 +31,7 @@ const Sidebar = () => {
         },
         {
             path: '/user/walletTransfer',
-            title: 'Wallet',
+            title: 'Wallet Transfer',
             icon: <IconBuildingBank size={20} />
         }
     ]
@@ -58,7 +58,7 @@ const Sidebar = () => {
     const [loading, setLoading] = useState(false)
 
     // because motion can't go directly with next's Link, so a custom component by motion is created here
-    const MotionLink = motion(Link)
+    // const MotionLink = motion(Link)
 
     // defined variants to avoid repeacted styles
     const variants = {
@@ -86,18 +86,20 @@ const Sidebar = () => {
                                 {
                                     navLinks.map(c => {
                                         return <React.Fragment key={c.path}>
-                                            <MotionLink
-                                                //@ts-ignore
-                                                variants={variants}
-                                                initial={variants.initial}
-                                                animate={variants.animate}
-                                                exit={variants.exit}
-                                                transition={{ duration: 0.3, ease: "easeInOut" }}
-                                                href={c.path} className='flex gap-2 items-center  px-2 py-1 hover:bg-neutral-100 rounded-md'
-                                            >
-                                                {c.icon}
-                                                <p className=' text-nowrap'>{c.title}</p>
-                                            </MotionLink>
+                                            <Link href={c.path}>
+                                                <div
+                                                    //@ts-ignore
+                                                    variants={variants}
+                                                    initial={variants.initial}
+                                                    animate={variants.animate}
+                                                    exit={variants.exit}
+                                                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                                                    href={c.path} className='flex gap-2 items-center  px-2 py-1 hover:bg-neutral-100 rounded-md'
+                                                >
+                                                    {c.icon}
+                                                    <p className=' text-nowrap'>{c.title}</p>
+                                                </div>
+                                            </Link>
                                         </React.Fragment>
                                     })
                                 }

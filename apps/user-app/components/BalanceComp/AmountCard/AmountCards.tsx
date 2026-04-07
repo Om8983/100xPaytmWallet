@@ -7,7 +7,7 @@ import { Button } from '@repo/ui/button'
 import { IconCircleCheckFilled, IconCurrencyRupee } from '@tabler/icons-react'
 import { AmountCardContainer } from './AmountCardContainer';
 import { NumberCounter } from "@repo/ui/NumberCounter"
-import getUserBalance from '../../../app/actions/action';
+import getUserBalance from '../../../app/actions/user/action';
 import { toast } from 'sonner';
 
 
@@ -139,7 +139,7 @@ export const AmountCards = () => {
             >
                 <AmountCardTitle
                     showIcon={true}
-                    title="TOTAL INCOME"
+                    title="WALLET BALANCE"
                     iconStyle="stroke-[#393bfe]"
                     classname="text-white" >
                     <div className='flex gap-1 items-center mb-1'>

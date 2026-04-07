@@ -21,7 +21,7 @@ model User {
   token       String         @unique // to store the user's jwt token to make sure single login.
   password    String?
   googleID    String?
-  Balance     Balance?
+  Balance     Balance? // this balance is purely the user's WALLET BALANCE but not the bank account balance
   OnRamping   OnRamping[] // this means a single user can have multiple onramp transactions
   Sender      PeerTransfer[] @relation("SenderTransfer")
   Receiver    PeerTransfer[] @relation("ReceiverTransfer")
@@ -35,6 +35,7 @@ model Balance {
   user    User   @relation(fields: [userId], references: [id])
 }
 
+// onramp transaction means adding or removing money to the wallet or from the wallet respectively
 model OnRamping {
   id     String       @id @default(uuid())
   status OnRampStatus
