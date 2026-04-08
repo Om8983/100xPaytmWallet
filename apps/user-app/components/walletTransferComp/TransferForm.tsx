@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Dropdown } from "@repo/ui/Dropdown/Dropdown";
 import { DropdownItem } from "@repo/ui/Dropdown/DropdownItem";
-import { confirmTxnStatus, initTransaction } from "../../app/actions/transaction/action";
+import { confirmTxnStatus, initTransaction, withdrawWalletAmt } from "../../app/actions/transaction/action";
 import { toast } from "sonner";
 
 interface TransferFormProps {
@@ -16,16 +16,12 @@ interface TransferFormProps {
 
 const PRESET_AMOUNTS = [500, 1000, 2000];
 
-const addMoneySchema = z.object({
+const schema = z.object({
     bankAcc: z.string().min(1, "Bank Account is required!"),
     amount: z.number().min(1, 'Amount must be greater than 0.'),
 })
-const sendMoneySchema = z.object({
-    phone: z.string().min(1, "Phone is required!"),
-    amount: z.number().min(10, 'Amount must be greater than 0.'),
-})
 export const TransferForm = ({ onTransferComplete }: TransferFormProps) => {
-    const [activeTab, setActiveTab] = useState<'send' | 'add'>('send');
+    const [activeTab, setActiveTab] = useState<'withdraw' | 'add'>('withdraw');
     const [isLoading, setIsLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const bankAccounts = [
@@ -34,18 +30,17 @@ export const TransferForm = ({ onTransferComplete }: TransferFormProps) => {
     ]
     const [bankAccDrop, setBankAccDrop] = useState<boolean>(false)
     const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<any>({
-        resolver: zodResolver(activeTab === 'add' ? addMoneySchema : sendMoneySchema),
+        resolver: zodResolver(schema),
         defaultValues: {
             bankAcc: "",
-            phone: "",
             amount: 0
         }
     })
-
+    console.log("watch", watch())
     const onSubmit = async (data: any) => {
         setIsLoading(true);
         setShowSuccess(false);
-
+        console.log('hither')
         try {
             const { success, msg, token }: { success: boolean, msg: string, token: string | null } = await initTransaction(data)
             if (!success && !token) {
@@ -60,6 +55,14 @@ export const TransferForm = ({ onTransferComplete }: TransferFormProps) => {
                 // updating transation status and incrementing balance
                 const { success: paymentStatus, msg: txn_msg }: { success: boolean, msg: string } = await confirmTxnStatus({ token: token ?? "", amount: data?.amount })
                 if (paymentStatus === false) {
+                    setIsLoading(false);
+                    setShowSuccess(false);
+                    toast.error("Payment Unsuccesfull!")
+                    return
+                }
+            } else if (activeTab === "withdraw") {
+                const { success: paymentStatus, msg: txn_msg }: { success: boolean, msg: string } = await withdrawWalletAmt({ token: token ?? "", amount: data?.amount })
+                if (!paymentStatus) {
                     setIsLoading(false);
                     setShowSuccess(false);
                     toast.error("Payment Unsuccesfull!")
@@ -87,8 +90,11 @@ export const TransferForm = ({ onTransferComplete }: TransferFormProps) => {
             {/* Tab buttons */}
             <div className="flex gap-2 mb-6 border-b border-border">
                 <button
-                    onClick={() => setActiveTab('send')}
-                    className={`px-4 py-3 text-sm font-medium transition-colors duration-200 border-b-2 -mb-px ${activeTab === 'send'
+                    onClick={() => {
+                        reset()
+                        setActiveTab('withdraw')
+                    }}
+                    className={`px-4 py-3 text-sm font-medium transition-colors duration-200 border-b-2 -mb-px ${activeTab === 'withdraw'
                         ? 'text-blue-800 border-blue-800'
                         : 'text-muted-foreground border-transparent hover:text-foreground'
                         }`}
@@ -97,7 +103,10 @@ export const TransferForm = ({ onTransferComplete }: TransferFormProps) => {
 
                 </button>
                 <button
-                    onClick={() => setActiveTab('add')}
+                    onClick={() => {
+                        reset()
+                        setActiveTab('add')
+                    }}
                     className={`px-4 py-3 text-sm font-medium transition-colors duration-200 border-b-2 -mb-px ${activeTab === 'add'
                         ? 'text-blue-800 border-blue-800'
                         : 'text-muted-foreground border-transparent hover:text-foreground'
@@ -175,7 +184,6 @@ export const TransferForm = ({ onTransferComplete }: TransferFormProps) => {
                     </div>
                 </div>
 
-                {/* Fee breakdown */}
                 <div className="bg-secondary/50 rounded-lg p-4 space-y-2 border border-border">
                     <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Amount</span>

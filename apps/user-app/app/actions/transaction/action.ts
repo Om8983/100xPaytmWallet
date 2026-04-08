@@ -126,7 +126,7 @@ export const initTransaction = async ({ amount, bankAcc }: WalletProps) => {
         msg: "Invalid Inputs!",
       };
     }
-    const token = crypto.randomUUID();
+    const token = `TXN_${crypto.randomUUID()}`;
     const result = await prisma.$transaction(async (txn) => {
       const createPayment = await txn.onRamping.create({
         data: {
@@ -134,7 +134,7 @@ export const initTransaction = async ({ amount, bankAcc }: WalletProps) => {
           status: "Processing",
           provider: bankAcc,
           amount: amount * 100, // to avoid the decimal values being stored to the database.
-          token: `TXN_${token}`,
+          token: token,
         },
       });
       if (!createPayment) {
@@ -189,7 +189,7 @@ export const confirmTxnStatus = async ({
       await txn.onRamping.update({
         where: {
           userId: userId,
-          token: `TXN_${token}`,
+          token: token,
         },
         data: {
           status: "Success",
@@ -206,7 +206,68 @@ export const confirmTxnStatus = async ({
     await prisma.onRamping.update({
       where: {
         userId,
-        token: `TXN_${token}`,
+        token: token,
+      },
+      data: {
+        status: "Failure",
+        endTime: new Date(),
+      },
+    });
+
+    return { msg: "Payment Failed", success: false };
+  }
+};
+
+// for withdrawal we are currently just subtracting the amount from the wallet but ideally it should be deducted from the wallet and credited to the bank account
+export const withdrawWalletAmt = async ({
+  token,
+  amount,
+}: {
+  token: string;
+  amount: number;
+}) => {
+  const userSession = await getUserOrThrow();
+  const userId = userSession?.id;
+  try {
+    if (!amount || !token) {
+      return {
+        msg: "Payment Failed",
+        success: false,
+      };
+    }
+
+    await prisma.$transaction(async (txn) => {
+      // updating user balance.
+      const updateBalance = await txn.balance.update({
+        where: {
+          userId: userId,
+        },
+        data: {
+          balance: { decrement: amount },
+        },
+      });
+      await txn.onRamping.update({
+        where: {
+          userId: userId,
+          token: token,
+        },
+        data: {
+          status: "Success",
+          endTime: new Date(),
+        },
+      });
+      return true;
+    });
+
+    return {
+      msg: "Payment Transfer Successful.",
+      success: true,
+    };
+  } catch (error) {
+    await prisma.onRamping.update({
+      where: {
+        userId,
+        token: token,
       },
       data: {
         status: "Failure",
