@@ -13,6 +13,7 @@ export type P2PTxnData = {
   sender_email: string;
 };
 // peer to peer server action for user currently being logged in.
+// make sure you convert the balance back to decimal if any transfers are done in decimal
 export const getP2PtxnData = async (): Promise<P2PTxnData[]> => {
   try {
     const userSession = await getUserOrThrow();
@@ -65,7 +66,8 @@ export type OnRampTxnData = {
   startTime: string;
   endTime: string;
 };
-// user balance fetching server action
+// user's wallet and bank transaction data
+// make sure you convert the balance back to decimal if any transfers are done in decimal
 export const getBalanceTxnData = async (): Promise<OnRampTxnData[]> => {
   try {
     const userSession = await getUserOrThrow();
@@ -112,7 +114,7 @@ type WalletProps = {
   bankAcc: PROVIDER;
 };
 // endpoint that ensures of adding money to the users wallet balance from the respective bank account
-export const addMoneyToWallet = async ({ amount, bankAcc }: WalletProps) => {
+export const initTransaction = async ({ amount, bankAcc }: WalletProps) => {
   try {
     const user = await getUserOrThrow();
     const userId = user?.id;
@@ -165,18 +167,18 @@ export const confirmTxnStatus = async ({
   token: string;
   amount: number;
 }) => {
+  const userSession = await getUserOrThrow();
+  const userId = userSession?.id;
   try {
-    const userSession = await getUserOrThrow();
-    const userId = userSession?.id;
-    if (!amount && !token) {
+    if (!amount || !token) {
       return {
         msg: "Payment Failed",
         success: false,
       };
     }
-    const result = await prisma.$transaction(async (txn) => {
+    await prisma.$transaction(async (txn) => {
       // updating user balance.
-      const updateBalance = await txn.balance.update({
+      await txn.balance.update({
         where: {
           userId: userId,
         },
@@ -184,41 +186,34 @@ export const confirmTxnStatus = async ({
           balance: { increment: amount },
         },
       });
-      if (!updateBalance) {
-        await txn.onRamping.update({
-          where: {
-            userId: userId,
-            token: token,
-          },
-          data: {
-            status: "Failure",
-            endTime: new Date(),
-          },
-        });
-        return false;
-      }
       await txn.onRamping.update({
         where: {
           userId: userId,
-          token: token,
+          token: `TXN_${token}`,
         },
         data: {
           status: "Success",
           endTime: new Date(),
         },
       });
+      return true;
     });
-    if (!result) {
-      return {
-        msg: "Payment Failed.",
-        success: false,
-      };
-    }
     return {
       msg: "Payment Success.",
       success: true,
     };
   } catch (error) {
-    throw new Error();
+    await prisma.onRamping.update({
+      where: {
+        userId,
+        token: `TXN_${token}`,
+      },
+      data: {
+        status: "Failure",
+        endTime: new Date(),
+      },
+    });
+
+    return { msg: "Payment Failed", success: false };
   }
 };

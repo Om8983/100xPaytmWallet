@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Dropdown } from "@repo/ui/Dropdown/Dropdown";
 import { DropdownItem } from "@repo/ui/Dropdown/DropdownItem";
-import { addMoneyToWallet, confirmTxnStatus } from "../../app/actions/transaction/action";
+import { confirmTxnStatus, initTransaction } from "../../app/actions/transaction/action";
 import { toast } from "sonner";
 
 interface TransferFormProps {
@@ -25,7 +25,7 @@ const sendMoneySchema = z.object({
     amount: z.number().min(10, 'Amount must be greater than 0.'),
 })
 export const TransferForm = ({ onTransferComplete }: TransferFormProps) => {
-    const [activeTab, setActiveTab] = useState<'withdraw' | 'add'>('withdraw');
+    const [activeTab, setActiveTab] = useState<'send' | 'add'>('send');
     const [isLoading, setIsLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const bankAccounts = [
@@ -47,34 +47,32 @@ export const TransferForm = ({ onTransferComplete }: TransferFormProps) => {
         setShowSuccess(false);
 
         try {
-            if (activeTab === "add") {
-                const { success, msg, token }: { success: boolean, msg: string, token: string | null } = await addMoneyToWallet(data)
-                if (!success && !token) {
-                    setIsLoading(false);
-                    setShowSuccess(false);
-                    reset()
-                    toast.error("Payment Unsuccesfull!")
-                    return
-                }
+            const { success, msg, token }: { success: boolean, msg: string, token: string | null } = await initTransaction(data)
+            if (!success && !token) {
+                setIsLoading(false);
+                setShowSuccess(false);
+                reset()
+                toast.error("Payment Unsuccesfull!")
+                return
+            }
 
+            if (activeTab === "add") {
                 // updating transation status and incrementing balance
                 const { success: paymentStatus, msg: txn_msg }: { success: boolean, msg: string } = await confirmTxnStatus({ token: token ?? "", amount: data?.amount })
-                if (!paymentStatus) {
+                if (paymentStatus === false) {
                     setIsLoading(false);
                     setShowSuccess(false);
                     toast.error("Payment Unsuccesfull!")
                     return
                 }
-                reset()
-                setShowSuccess(true)
-                setIsLoading(false)
-                setTimeout(() => {
-                    setShowSuccess(false);
-                }, 2000);
-                toast.success(txn_msg)
-            } else {
-
             }
+            reset()
+            setShowSuccess(true)
+            setIsLoading(false)
+            setTimeout(() => {
+                setShowSuccess(false);
+            }, 2000);
+            toast.success("Payment Success!")
         } catch (error) {
             setIsLoading(false);
             setShowSuccess(false);
@@ -89,8 +87,8 @@ export const TransferForm = ({ onTransferComplete }: TransferFormProps) => {
             {/* Tab buttons */}
             <div className="flex gap-2 mb-6 border-b border-border">
                 <button
-                    onClick={() => setActiveTab('withdraw')}
-                    className={`px-4 py-3 text-sm font-medium transition-colors duration-200 border-b-2 -mb-px ${activeTab === 'withdraw'
+                    onClick={() => setActiveTab('send')}
+                    className={`px-4 py-3 text-sm font-medium transition-colors duration-200 border-b-2 -mb-px ${activeTab === 'send'
                         ? 'text-blue-800 border-blue-800'
                         : 'text-muted-foreground border-transparent hover:text-foreground'
                         }`}
