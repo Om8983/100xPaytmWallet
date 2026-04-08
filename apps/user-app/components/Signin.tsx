@@ -50,7 +50,6 @@ export const Signin = () => {
             setLoading(true)
             setSameEmailPass(false)
             const res = await signIn("credentials", { email, phone, password, redirect: false, callbackUrl: "/user/dashboard" });
-            console.log("res", res)
             if (!res?.ok || res.status === 401) {
                 toast.error("Invalid credentials !")
                 setSameEmailPass(true)
@@ -63,7 +62,6 @@ export const Signin = () => {
             return
         }
     }
-    console.log("watch", watch())
     return (
 
         <div

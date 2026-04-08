@@ -110,14 +110,14 @@
 //     }
 // )
 "use client";
-import React, { useRef, useCallback } from "react";
+import React, { useRef } from "react";
 import { motion } from "motion/react";
 
 type AmountCardContainerProps = {
     children?: React.ReactNode;
     id: string;
     className?: string;
-    cardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
+    cardRefs?: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
     absoluteContainerClassname?: string;
 };
 
@@ -153,6 +153,7 @@ export const AmountCardContainer =
                 <motion.div
                     key={id}
                     ref={(el) => {
+                        if (!cardRefs) return
                         cardRefs.current[id] = el;
                     }}
                     className={`relative lg:w-[400px] lg:h-[200px] sm:w-[100px] sm:h-[60px] rounded-2xl `}
