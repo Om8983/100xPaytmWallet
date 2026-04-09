@@ -6,22 +6,23 @@ import { PROVIDER } from "../../../../../packages/db/generated/prisma";
 
 export type P2PTxnData = {
   amount: number;
-  status: string;
-  startTime: string;
-  endTime: string;
-  receiver_email: string;
-  sender_email: string;
+  txn_status: string;
+  start_time: string;
+  end_time: string;
+  sender: string;
+  receiver: string;
+  txn_id: string;
 };
 // peer to peer server action for user currently being logged in.
 // make sure you convert the balance back to decimal if any transfers are done in decimal
-export const getP2PtxnData = async (): Promise<P2PTxnData[]> => {
+export const getP2PtxnData = async (userId: string): Promise<P2PTxnData[]> => {
   try {
-    const userSession = await getUserOrThrow();
     const user = await prisma.user.findUnique({
       where: {
-        id: userSession.user.id,
+        id: userId,
       },
       select: {
+        token: true,
         email: true,
         Sender: {
           select: {
@@ -44,12 +45,13 @@ export const getP2PtxnData = async (): Promise<P2PTxnData[]> => {
     }
 
     const mappedData: P2PTxnData[] = user.Sender.map((txn) => ({
+      txn_id: user.token,
+      sender: user.email,
       amount: txn.amount,
-      status: txn.status,
-      startTime: txn.startTime.toISOString(),
-      endTime: txn.endTime ? txn.endTime.toISOString() : "",
-      receiver_email: txn.receiver.email,
-      sender_email: user.email,
+      txn_status: txn.status,
+      start_time: txn.startTime.toISOString(),
+      end_time: txn.endTime ? txn.endTime.toISOString() : "",
+      receiver: txn.receiver.email,
     }));
 
     return mappedData;
@@ -60,26 +62,29 @@ export const getP2PtxnData = async (): Promise<P2PTxnData[]> => {
 
 export type OnRampTxnData = {
   id: string;
-  status: string;
+  txn_id: string;
+  txn_status: string;
   amount: number;
   provider: string;
-  startTime: string;
-  endTime: string;
+  start_time: string;
+  end_time: string;
 };
 // user's wallet and bank transaction data
 // make sure you convert the balance back to decimal if any transfers are done in decimal
-export const getBalanceTxnData = async (): Promise<OnRampTxnData[]> => {
+export const getBalanceTxnData = async (
+  userId: string,
+): Promise<OnRampTxnData[]> => {
   try {
-    const userSession = await getUserOrThrow();
     const user = await prisma.user.findUnique({
       where: {
-        id: userSession.user.id,
+        id: userId,
       },
       select: {
         OnRamping: {
           select: {
             // well here we are directly treating id as the txnId rather being token the txnId. Since we know that the token is supposed to be the token that the bank server will pass us and on that basis we will open the modal for the selected bank and then while making payment we wil also send that token so that the bank can verify the token is valid and will proceed the payment with respect to that.
             id: true,
+            token: true,
             status: true,
             amount: true,
             provider: true,
@@ -96,11 +101,12 @@ export const getBalanceTxnData = async (): Promise<OnRampTxnData[]> => {
 
     const mappedData: OnRampTxnData[] = user.OnRamping.map((txn) => ({
       id: txn.id,
-      status: txn.status,
+      txn_id: txn.token,
+      txn_status: txn.status,
       amount: txn.amount,
       provider: txn.provider,
-      startTime: txn.startTime.toISOString(),
-      endTime: txn.endTime ? txn.endTime.toISOString() : "",
+      start_time: txn.startTime.toISOString(),
+      end_time: txn.endTime ? txn.endTime.toISOString() : "",
     }));
 
     return mappedData;
