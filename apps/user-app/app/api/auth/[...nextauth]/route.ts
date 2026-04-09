@@ -48,7 +48,6 @@ export const AuthOptions = {
       },
       async authorize(credentials: any) {
         try {
-          console.log("credentials", credentials);
           if (
             !credentials?.password ||
             !credentials?.email ||
@@ -56,7 +55,6 @@ export const AuthOptions = {
           ) {
             return null;
           }
-          console.log("entered");
           const existingUser = await prisma.user.findFirst({
             where: {
               email: credentials?.email,
@@ -68,9 +66,7 @@ export const AuthOptions = {
               password: true,
             },
           });
-          console.log("existingUser", existingUser);
           if (!existingUser) {
-            console.log("notexisting");
             // here i should send an email verification link and prompt the user to follow that link in order to check if email is valid
             // generating salt rounds and hashing new user password
             const saltRounds = await bcrypt.genSalt(10);
@@ -81,9 +77,7 @@ export const AuthOptions = {
             try {
               const token = await generateJWT({ email: credentials.email });
               // storing new user to db
-              console.log("creating");
-              const phone = Number(credentials.phone);
-              console.log("phone", phone);
+              const phone = credentials.phone;
               const newUser = await prisma.user.create({
                 data: {
                   email: credentials.email as string,
@@ -100,7 +94,6 @@ export const AuthOptions = {
                   email: true,
                 },
               });
-              console.log("newUser", newUser);
               return {
                 id: newUser.id,
                 email: newUser.email,
@@ -111,10 +104,9 @@ export const AuthOptions = {
               return null;
             }
           }
-          if (Number(credentials?.phone) !== existingUser?.phoneNumber) {
+          if (credentials?.phone !== existingUser?.phoneNumber) {
             return null;
           }
-          console.log("phone check passed");
           // if user exist check the password with respect to the hashed password stored in the database
           const dbHashedPass = existingUser?.password;
           const isPassCorrect = await bcrypt.compare(
@@ -125,7 +117,6 @@ export const AuthOptions = {
           if (!isPassCorrect) {
             return null;
           }
-          console.log("pass checked");
           try {
             const token: string = (await generateJWT({
               email: existingUser.email,

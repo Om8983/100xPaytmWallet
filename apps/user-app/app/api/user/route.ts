@@ -1,6 +1,8 @@
 import { prisma } from "@repo/db";
 import { NextRequest, NextResponse } from "next/server";
 
+// route for checking if the token assigned to the user is valid or not via the middleware.ts.
+
 export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     // Getting search params from the URL
