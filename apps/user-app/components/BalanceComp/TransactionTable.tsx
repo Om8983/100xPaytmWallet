@@ -6,15 +6,37 @@ import { IconChevronDown, IconTransactionRupee, IconWallet } from '@tabler/icons
 import { Dropdown } from "@repo/ui/Dropdown/Dropdown"
 import { DropdownItem } from "@repo/ui/Dropdown/DropdownItem"
 import { useOutsideClickHandler } from '../../app/customHoolks/useOutsideClickHandler';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
+type WalletData = {
+    txn_id: string;
+    amount: number;
+    txn_status: string;
+    provider: string;
+    start_time: string;
+    end_time: string;
+}[]
+
+type P2PData = {
+    txn_id: string;
+    amount: number;
+    txn_status: string;
+    sender: string;
+    receiver: string;
+}[]
 type TableType = {
     walletTransactionCols: { key: string, label: string }[];
     p2pTxnCols: { key: string, label: string }[];
-    // user_txnData: {}[];
+    user_txnData: WalletData | P2PData;
 }
-export const TransactionTable = ({ p2pTxnCols, walletTransactionCols }: TableType) => {
 
-    const user_txnData: [] = [];
+export const TransactionTable = ({ p2pTxnCols, walletTransactionCols, user_txnData }: TableType) => {
+
+    const searchParams = useSearchParams();
+    const pathname = usePathname();   // gives the path of the current page.
+    const { replace } = useRouter();
+
     const [txnFilterType, setTxnFilterType] = useState("wallet")
     // statsu for transaction type dropdown
     const [isTxnTypeDrop, setTxnTypeDrop] = useState<boolean>(false)
@@ -26,6 +48,12 @@ export const TransactionTable = ({ p2pTxnCols, walletTransactionCols }: TableTyp
         setDropdown: setTxnTypeDrop
     })
 
+    // to understand what actually happening below you can refer to README point Balance(1)
+    const handleParams = (currTxnType: string) => {
+        const params = new URLSearchParams(searchParams)
+        params.set("txnType", currTxnType)
+        replace(`${pathname}?txnType=${currTxnType}`)
+    }
     return (
         <>
             <div className='flex justify-between items-center'>
@@ -50,6 +78,7 @@ export const TransactionTable = ({ p2pTxnCols, walletTransactionCols }: TableTyp
                             itemHandler={() => {
                                 setTxnFilterType("wallet")
                                 setTxnTypeDrop(false)
+                                handleParams("wallet")
                             }}
                             className={`${txnFilterType === "wallet" && "bg-neutral-200 bg-opacity-50  "}`} >
                             <IconWallet size={16} /> Wallet Transations
@@ -58,6 +87,7 @@ export const TransactionTable = ({ p2pTxnCols, walletTransactionCols }: TableTyp
                             itemHandler={() => {
                                 setTxnFilterType("p2p")
                                 setTxnTypeDrop(false)
+                                handleParams("p2p")
                             }}
                             className={`${txnFilterType === "p2p" && "bg-neutral-200 bg-opacity-50  "}`} >
                             <IconTransactionRupee size={16} /> P2P Transations
