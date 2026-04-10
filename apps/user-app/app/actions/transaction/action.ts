@@ -3,19 +3,23 @@
 import { prisma } from "@repo/db";
 import { getUserOrThrow } from "../../../lib/auth/utils";
 import { PROVIDER } from "../../../../../packages/db/generated/prisma";
+import {
+  P2PData,
+  WalletData,
+} from "../../../components/BalanceComp/TransactionTable";
 
-export type P2PTxnData = {
-  amount: number;
-  txn_status: string;
-  start_time: string;
-  end_time: string;
-  sender: string;
-  receiver: string;
-  txn_id: string;
-};
+// export type P2PTxnData = {
+//   amount: number;
+//   txn_status: string;
+//   start_time: string;
+//   end_time: string;
+//   sender: string;
+//   receiver: string;
+//   txn_id: string;
+// };
 // peer to peer server action for user currently being logged in.
 // make sure you convert the balance back to decimal if any transfers are done in decimal
-export const getP2PtxnData = async (userId: string): Promise<P2PTxnData[]> => {
+export const getP2PtxnData = async (userId: string): Promise<P2PData[]> => {
   try {
     const user = await prisma.user.findUnique({
       where: {
@@ -44,13 +48,19 @@ export const getP2PtxnData = async (userId: string): Promise<P2PTxnData[]> => {
       throw new Error("No data found!");
     }
 
-    const mappedData: P2PTxnData[] = user.Sender.map((txn) => ({
+    const mappedData: P2PData[] = user.Sender.map((txn) => ({
       txn_id: user.token,
       sender: user.email,
-      amount: txn.amount,
+      amount: txn.amount / 100,
       txn_status: txn.status,
-      start_time: txn.startTime.toISOString(),
-      end_time: txn.endTime ? txn.endTime.toISOString() : "",
+      start_time: {
+        date: txn.startTime.toLocaleDateString(),
+        time: txn.startTime.toLocaleTimeString(),
+      },
+      end_time: {
+        date: txn.endTime !== null ? txn.endTime.toLocaleDateString() : "",
+        time: txn.endTime !== null ? txn.endTime.toLocaleTimeString() : "",
+      },
       receiver: txn.receiver.email,
     }));
 
@@ -60,20 +70,20 @@ export const getP2PtxnData = async (userId: string): Promise<P2PTxnData[]> => {
   }
 };
 
-export type OnRampTxnData = {
-  id: string;
-  txn_id: string;
-  txn_status: string;
-  amount: number;
-  provider: string;
-  start_time: string;
-  end_time: string;
-};
+// export type OnRampTxnData = {
+//   id: string;
+//   txn_id: string;
+//   txn_status: string;
+//   amount: number;
+//   provider: string;
+//   start_time: string;
+//   end_time: string;
+// };
 // user's wallet and bank transaction data
 // make sure you convert the balance back to decimal if any transfers are done in decimal
 export const getBalanceTxnData = async (
   userId: string,
-): Promise<OnRampTxnData[]> => {
+): Promise<WalletData[]> => {
   try {
     const user = await prisma.user.findUnique({
       where: {
@@ -99,14 +109,20 @@ export const getBalanceTxnData = async (
       throw new Error("No data found!");
     }
 
-    const mappedData: OnRampTxnData[] = user.OnRamping.map((txn) => ({
+    const mappedData: WalletData[] = user.OnRamping.map((txn) => ({
       id: txn.id,
       txn_id: txn.token,
       txn_status: txn.status,
-      amount: txn.amount,
-      provider: txn.provider,
-      start_time: txn.startTime.toISOString(),
-      end_time: txn.endTime ? txn.endTime.toISOString() : "",
+      amount: txn.amount / 100,
+      provider: txn.provider?.split("_")[0] as string,
+      start_time: {
+        date: txn.startTime.toLocaleDateString(),
+        time: txn.startTime.toLocaleTimeString(),
+      },
+      end_time: {
+        date: txn.endTime !== null ? txn.endTime.toLocaleDateString() : "",
+        time: txn.endTime !== null ? txn.endTime.toLocaleTimeString() : "",
+      },
     }));
 
     return mappedData;

@@ -9,26 +9,40 @@ import { useOutsideClickHandler } from '../../app/customHoolks/useOutsideClickHa
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 
-type WalletData = {
+export type WalletData = {
     txn_id: string;
     amount: number;
     txn_status: string;
     provider: string;
-    start_time: string;
-    end_time: string;
-}[]
+    start_time: {
+        date: string,
+        time: string
+    };
+    end_time: {
+        date: string,
+        time: string
+    };
+}
 
-type P2PData = {
+export type P2PData = {
     txn_id: string;
     amount: number;
     txn_status: string;
     sender: string;
     receiver: string;
-}[]
+    start_time: {
+        date: string,
+        time: string
+    };
+    end_time: {
+        date: string,
+        time: string
+    };
+}
 type TableType = {
     walletTransactionCols: { key: string, label: string }[];
     p2pTxnCols: { key: string, label: string }[];
-    user_txnData: WalletData | P2PData;
+    user_txnData: WalletData[] | P2PData[];
 }
 
 export const TransactionTable = ({ p2pTxnCols, walletTransactionCols, user_txnData }: TableType) => {
