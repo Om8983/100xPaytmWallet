@@ -20,7 +20,7 @@ const getStatusLabel = (status: string) => {
 };
 
 type TxnData = {
-    id: string;
+    txn_id: string;
     amount: number;
     receiver_email: string; // could be name as well
     status: string;
@@ -46,7 +46,7 @@ export const RecentTransactions = ({ transactions }: RecentTxnProps) => {
                         :
                         transactions.map((transaction) => (
                             <div
-                                key={transaction.id}
+                                key={transaction.txn_id}
                                 className="flex items-center justify-between py-4 first:pt-0 last:pb-0 hover:bg-secondary/40 px-2 -mx-2 rounded-lg transition-colors duration-150"
                             >
                                 <div className="flex items-center gap-3 flex-1 min-w-0">
