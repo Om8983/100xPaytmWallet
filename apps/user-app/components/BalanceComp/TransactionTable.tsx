@@ -1,6 +1,5 @@
 "use client";
 import React, { useRef, useState } from 'react'
-import { Table } from '../Table'
 import { motion } from "motion/react";
 import { IconChevronDown, IconTransactionRupee, IconWallet } from '@tabler/icons-react';
 import { Dropdown } from "@repo/ui/Dropdown/Dropdown"
@@ -8,6 +7,7 @@ import { DropdownItem } from "@repo/ui/Dropdown/DropdownItem"
 import { useOutsideClickHandler } from '../../app/customHoolks/useOutsideClickHandler';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
+import { AllTxnData } from './AllTxnData';
 
 export type WalletData = {
     txn_id: string;
@@ -116,7 +116,7 @@ export const TransactionTable = ({ p2pTxnCols, walletTransactionCols, user_txnDa
                 transition={{ duration: 0.8, ease: "easeInOut" }}
                 className="rounded-md border overflow-auto h-[100%]"
             >
-                <Table columns={txnFilterType === "wallet" ? walletTransactionCols : p2pTxnCols} txn_data={user_txnData} />
+                <AllTxnData columns={txnFilterType === "wallet" ? walletTransactionCols : p2pTxnCols} txn_data={user_txnData} />
             </motion.div>
         </>
     )
