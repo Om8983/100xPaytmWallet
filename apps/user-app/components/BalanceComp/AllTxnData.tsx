@@ -4,7 +4,8 @@ import { THead } from '@repo/ui/THead'
 import { TBody } from '@repo/ui/TBody'
 import { AnimatePresence, motion } from 'motion/react'
 import { Tooltip } from '@repo/ui/Tooltip'
-import { IconChevronDown } from '@tabler/icons-react'
+import { IconArrowDownLeft, IconArrowUpRight, IconChevronDown } from '@tabler/icons-react'
+import { convertModernDate, convertModernTime } from '../../lib/commonFunc'
 
 type TableProps = {
     txn_data: any[],
@@ -28,18 +29,6 @@ export const AllTxnData = ({ txn_data, columns }: TableProps) => {
         } else {
             return "bg-[#fddde2] border-[#68432d] text-[#68432d]"
         }
-    }
-
-    const convertModernDate = (txnDate: string) => {
-
-        if (!txnDate) return "";
-        const date = new Date(txnDate);
-        return date.toLocaleDateString('en-US', {
-            month: 'short',
-            day: '2-digit',
-            year: 'numeric'
-        }).replace(',', '')
-
     }
     return (
         <Table>
@@ -79,7 +68,7 @@ export const AllTxnData = ({ txn_data, columns }: TableProps) => {
                                     {(col.key === "start_time" || col.key === "end_time") &&
                                         <div className='flex flex-col justify-center items-start'>
                                             <span className='text-sm'>{convertModernDate(row[col.key]?.date)}</span>
-                                            <span className='text-xs text-black text-opacity-50'>{row[col.key]?.time}</span>
+                                            <span className='text-xs text-black text-opacity-50'>{convertModernTime(row[col.key]?.time)}</span>
                                         </div>
                                     }
                                     {
@@ -94,9 +83,21 @@ export const AllTxnData = ({ txn_data, columns }: TableProps) => {
                                             </div>
                                         )
                                     }
+                                    {
+                                        col.key === "type" && (
+                                            <div className="flex gap-1 items-center ">
+                                                {row[col.key] === "withdraw" ? (
+                                                    <IconArrowUpRight className="h-4 w-4" color="green" />
+                                                ) : (
+                                                    <IconArrowDownLeft className="h-4 w-4" color="red" />
+                                                )}
+                                                {row[col.key] === "added" ? "Added" : "Withdrawn"}
+                                            </div>
+                                        )
+                                    }
                                     {col.key === "txn_status"
                                         ? <div className={`rounded-2xl min-w-[80px] w-max py-[0.4rem] text-center text-[0.8rem] font-medium border-none ${getStatusColor(row.txn_status)}`}>{row[col.key]}</div>
-                                        : (col.key !== "start_time" && col.key !== "end_time" && col.key !== "provider" && col.key !== "txn_id") ? row[col.key] : null
+                                        : (col.key !== "start_time" && col.key !== "end_time" && col.key !== "provider" && col.key !== "txn_id" && col.key !== "type") ? row[col.key] : null
                                     }
                                 </td>
                             ))}

@@ -22,6 +22,7 @@ export type WalletData = {
         date: string,
         time: string
     };
+    type: string;
 }
 
 export type P2PData = {

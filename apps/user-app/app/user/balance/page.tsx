@@ -27,6 +27,7 @@ export default async function page({ searchParams }: SearchParams) {
         { key: "provider", label: "Provider" },
         { key: "start_time", label: "Created At" },
         { key: "end_time", label: "Completed At" },
+        { key: "type", label: "Type" },
     ]
 
     const p2pTxnCols = [
