@@ -1,13 +1,22 @@
-"use client";
-import React from 'react'
 import { PageTopBar } from '../../../components/PageTopBar';
 import { AmountCardContainer } from '../../../components/BalanceComp/AmountCard/AmountCardContainer';
 import { PageBaseUi } from '@repo/ui/PageBaseUi';
 import { TransferForm } from '../../../components/walletTransferComp/TransferForm';
 import { RecentTransactions } from '../../../components/walletTransferComp/RecentTransactions';
 import { SpendingChart } from '../../../components/walletTransferComp/SpendingChart';
+import { getBalanceTxnData } from '../../actions/transaction/action';
+import { unstable_cache } from 'next/cache';
+import { getUserOrThrow } from '../../../lib/auth/utils';
 
-export default function page() {
+export default async function page() {
+    const userSession = await getUserOrThrow()
+    const userId = userSession?.id
+
+    const balanceTxnCacheFn = unstable_cache(() => getBalanceTxnData(userId), ['balance-txn', userId], {
+        tags: ['balanceTxnData'],
+        revalidate: 10
+    });
+    let txnData = await balanceTxnCacheFn();
 
     return (
         <PageBaseUi>
@@ -20,9 +29,8 @@ export default function page() {
                 </div>
                 <div className='flex items-center gap-2 w-full'>
                     <TransferForm
-                        onTransferComplete={() => { }}
                     />
-                    <RecentTransactions />
+                    <RecentTransactions transactions={txnData} />
                 </div>
             </div>
         </PageBaseUi>

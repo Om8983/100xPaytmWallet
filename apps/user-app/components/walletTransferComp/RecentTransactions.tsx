@@ -1,6 +1,7 @@
 'use client';
 
 import { IconArrowDownLeft, IconArrowUpRight } from "@tabler/icons-react";
+import { convertModernDate, convertModernTime } from "../../lib/commonFunc";
 
 const getStatusColor = (status: string) => {
     switch (status) {
@@ -22,10 +23,12 @@ const getStatusLabel = (status: string) => {
 type TxnData = {
     txn_id: string;
     amount: number;
-    receiver_email: string; // could be name as well
-    status: string;
-    endtime: string;
-    type: 'sent' | 'received'
+    txn_status: string;
+    end_time: {
+        date: string,
+        time: string
+    };
+    type: 'withdraw' | 'added'
 }
 type RecentTxnProps = {
     transactions?: TxnData[]
@@ -51,12 +54,12 @@ export const RecentTransactions = ({ transactions }: RecentTxnProps) => {
                             >
                                 <div className="flex items-center gap-3 flex-1 min-w-0">
                                     <div
-                                        className={`p-2.5 rounded-lg flex-shrink-0 transition-all duration-200 ${transaction.type === 'sent'
+                                        className={`p-2.5 rounded-lg flex-shrink-0 transition-all duration-200 ${transaction.type === 'withdraw'
                                             ? 'bg-destructive/15 text-destructive'
                                             : 'bg-accent/15 text-accent'
                                             }`}
                                     >
-                                        {transaction.type === 'sent' ? (
+                                        {transaction.type === 'withdraw' ? (
                                             <IconArrowUpRight className="h-4 w-4" color="green" />
                                         ) : (
                                             <IconArrowDownLeft className="h-4 w-4" color="red" />
@@ -65,25 +68,27 @@ export const RecentTransactions = ({ transactions }: RecentTxnProps) => {
 
                                     <div className="min-w-0 flex-1">
                                         <p className="text-sm font-semibold text-foreground truncate">
-                                            {transaction.receiver_email}
+                                            {transaction.type === 'added' ? "Money Added" : "Money Withdrawn"}
                                         </p>
-                                        <p className="text-xs text-muted-foreground">{transaction.endtime}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {convertModernDate(transaction.end_time.date)} {convertModernTime(transaction.end_time.time)}
+                                        </p>
                                     </div>
                                 </div>
 
                                 <div className="text-right flex-shrink-0 ml-4">
                                     <p
-                                        className={`text-sm font-bold ${transaction.type === 'sent' ? 'text-foreground' : 'text-accent'
+                                        className={`text-sm font-bold ${transaction.type === 'withdraw' ? 'text-foreground' : 'text-accent'
                                             }`}
                                     >
-                                        {transaction.type === 'sent' ? '−' : '+'}${transaction.amount.toFixed(2)}
+                                        {transaction.type === 'withdraw' ? '−' : '+'}${transaction.amount.toFixed(2)}
                                     </p>
                                     <span
                                         className={`inline-block text-xs px-2.5 py-1 rounded-full text-center mt-1 font-medium border ${getStatusColor(
-                                            transaction.status
+                                            transaction.txn_status
                                         )}`}
                                     >
-                                        {getStatusLabel(transaction.status)}
+                                        {getStatusLabel(transaction.txn_status)}
                                     </span>
                                 </div>
                             </div>

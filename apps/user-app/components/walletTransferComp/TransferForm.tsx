@@ -20,7 +20,7 @@ const schema = z.object({
     bankAcc: z.string().min(1, "Bank Account is required!"),
     amount: z.number().min(1, 'Amount must be greater than 0.'),
 })
-export const TransferForm = ({ onTransferComplete }: TransferFormProps) => {
+export const TransferForm = () => {
     const [activeTab, setActiveTab] = useState<'withdraw' | 'add'>('withdraw');
     const [isLoading, setIsLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -36,13 +36,18 @@ export const TransferForm = ({ onTransferComplete }: TransferFormProps) => {
             amount: 0
         }
     })
-    console.log("watch", watch())
+
     const onSubmit = async (data: any) => {
         setIsLoading(true);
         setShowSuccess(false);
-        console.log('hither')
+
+        const initiatePaymentPayload = {
+            ...data,
+            txnType: activeTab === "add" ? 'added' : "withdraw"
+        }
+
         try {
-            const { success, msg, token }: { success: boolean, msg: string, token: string | null } = await initTransaction(data)
+            const { success, msg, token }: { success: boolean, msg: string, token: string | null } = await initTransaction(initiatePaymentPayload)
             if (!success && !token) {
                 setIsLoading(false);
                 setShowSuccess(false);
