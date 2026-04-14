@@ -45,6 +45,7 @@ model OnRamping {
 
   userId String //@unique : bcus making it unique means a user can make an onramp transaction only once not mutliple times.
 
+  txn_type String
   provider PROVIDER @default(HDFC_BANK)
 
   startTime DateTime  @default(now())
