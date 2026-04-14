@@ -100,6 +100,7 @@ export const getBalanceTxnData = async (
             provider: true,
             startTime: true,
             endTime: true,
+            txn_type: true,
           },
         },
       },
@@ -123,6 +124,7 @@ export const getBalanceTxnData = async (
         date: txn.endTime !== null ? txn.endTime.toLocaleDateString() : "",
         time: txn.endTime !== null ? txn.endTime.toLocaleTimeString() : "",
       },
+      type: txn.txn_type,
     }));
 
     return mappedData;
@@ -134,9 +136,14 @@ export const getBalanceTxnData = async (
 type WalletProps = {
   amount: number;
   bankAcc: PROVIDER;
+  txnType: "added" | "withdraw";
 };
 // endpoint that ensures of adding money to the users wallet balance from the respective bank account
-export const initTransaction = async ({ amount, bankAcc }: WalletProps) => {
+export const initTransaction = async ({
+  amount,
+  bankAcc,
+  txnType,
+}: WalletProps) => {
   try {
     const user = await getUserOrThrow();
     const userId = user?.id;
@@ -149,22 +156,18 @@ export const initTransaction = async ({ amount, bankAcc }: WalletProps) => {
       };
     }
     const token = `TXN_${crypto.randomUUID()}`;
-    const result = await prisma.$transaction(async (txn) => {
-      const createPayment = await txn.onRamping.create({
-        data: {
-          userId: userId,
-          status: "Processing",
-          provider: bankAcc,
-          amount: amount * 100, // to avoid the decimal values being stored to the database.
-          token: token,
-        },
-      });
-      if (!createPayment) {
-        return false;
-      }
-      return true;
+
+    const createPayment = await prisma.onRamping.create({
+      data: {
+        userId: userId,
+        status: "Processing",
+        provider: bankAcc,
+        amount: amount * 100, // to avoid the decimal values being stored to the database.
+        token: token,
+        txn_type: txnType,
+      },
     });
-    if (!result) {
+    if (!createPayment) {
       return {
         success: false,
         token: null,
@@ -178,6 +181,7 @@ export const initTransaction = async ({ amount, bankAcc }: WalletProps) => {
       msg: "Transaction Successfull.",
     };
   } catch (error) {
+    console.log("error", error);
     throw new Error();
   }
 };
