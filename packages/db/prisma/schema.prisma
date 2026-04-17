@@ -77,7 +77,7 @@ model PeerTransfer {
   id              String     @id @default(uuid())
   status          PeerStatus
   amount          Int
-  idempotency_key String //will be generated randomly by frontend and stored here.
+  // idempotency_key String //will be generated randomly by frontend and stored here.
   receiverId      String // @unique.   the reason i commented this out cuz if the user wants to send money to the same user again then it will create a conflict while transfering since it is suppose to be unique in the table. If you still have issues understanding this then please refer the bottom of the file.
   senderId        String //    @unique
 
