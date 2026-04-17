@@ -124,7 +124,7 @@ export const getBalanceTxnData = async (
         date: txn.endTime !== null ? txn.endTime.toLocaleDateString() : "",
         time: txn.endTime !== null ? txn.endTime.toLocaleTimeString() : "",
       },
-      type: txn.txn_type,
+      type: txn.txn_type as "added" | "withdraw",
     }));
 
     return mappedData;
@@ -264,7 +264,7 @@ export const withdrawWalletAmt = async ({
 
     await prisma.$transaction(async (txn) => {
       // updating user balance.
-      const updateBalance = await txn.balance.update({
+      await txn.balance.update({
         where: {
           userId: userId,
         },
@@ -301,6 +301,109 @@ export const withdrawWalletAmt = async ({
       },
     });
 
+    return { msg: "Payment Failed", success: false };
+  }
+};
+
+// PEER TO PEER TXN's ACtion
+export const peerTransfer = async ({
+  amount,
+  receiverId,
+  // idempotency_key,
+}: {
+  amount: number;
+  receiverId: string | null;
+  // idempotency_key: string;
+}) => {
+  const userSession = await getUserOrThrow();
+  const userId = userSession?.id;
+
+  if (!amount || !receiverId) {
+    return {
+      msg: "Payment Failed",
+      success: false,
+      paymentId: null,
+    };
+  }
+  try {
+    const result = await prisma.$transaction(async (txn) => {
+      const initPeerTxn = await txn.peerTransfer.create({
+        data: {
+          status: "PENDING",
+          amount: amount,
+          senderId: userId,
+          receiverId: receiverId,
+        },
+        select: {
+          id: true,
+        },
+      });
+      return initPeerTxn.id;
+    });
+    return { msg: "Payment Success", success: true, paymentId: result }; // the result will be the payment id for the txn been created
+  } catch (error) {
+    const payment = await prisma.peerTransfer.create({
+      data: {
+        status: "FAILED",
+        amount: amount,
+        senderId: userId,
+        receiverId: receiverId,
+      },
+      select: {
+        id: true,
+      },
+    });
+    return { msg: "Payment Failed", success: false, paymentId: payment.id };
+  }
+};
+
+// confirming the status of the payment once the request for peertransfer is success
+export const confirmPeerTransfer = async ({
+  paymentId,
+}: {
+  paymentId: string | null;
+}) => {
+  const userSession = await getUserOrThrow();
+  const userId = userSession?.id;
+  try {
+    if (!paymentId) {
+      return {
+        msg: "Payment Failed",
+        success: false,
+      };
+    }
+    await prisma.$transaction(async (txn) => {
+      const txnAmount = await txn.peerTransfer.update({
+        where: {
+          id: paymentId,
+        },
+        data: {
+          status: "SUCCESS",
+        },
+        select: {
+          amount: true,
+        },
+      });
+      // deducting that amount from the senders wallet
+      await txn.balance.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          balance: { decrement: txnAmount.amount },
+        },
+      });
+    });
+    return { msg: "Payment Success", success: true };
+  } catch (error) {
+    await prisma.peerTransfer.update({
+      where: {
+        id: paymentId as string,
+      },
+      data: {
+        status: "FAILED",
+      },
+    });
     return { msg: "Payment Failed", success: false };
   }
 };
