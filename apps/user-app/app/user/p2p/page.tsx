@@ -4,8 +4,21 @@ import { PeerTransferForm } from '../../../components/p2pTransferComponents/Peer
 import { PageTopBar } from '../../../components/PageTopBar'
 import { QuickPayments } from '../../../components/p2pTransferComponents/QuickPayments'
 import { RecentPeerTransactionTable } from '../../../components/p2pTransferComponents/RecentPeerTransactionTable'
+import { unstable_cache } from 'next/cache'
+import { getP2PtxnData } from '../../actions/transaction/action'
+import { getUserOrThrow } from '../../../lib/auth/utils'
 
-export default function page() {
+export default async function page() {
+    const userSession = await getUserOrThrow()
+    const userId = userSession?.id
+
+
+    const p2pTxndataCacheFn = unstable_cache(() => getP2PtxnData(userId), ['balance-txn', userId], {
+        tags: ['balanceTxnData'],
+        revalidate: 10
+    });
+    const txnData = await p2pTxndataCacheFn()
+
     return (
         <PageBaseUi>
             <PageTopBar title='Peer To Peer Transfer' />
@@ -14,7 +27,7 @@ export default function page() {
                     <PeerTransferForm />
                     <QuickPayments data={[]} />
                 </div>
-                <RecentPeerTransactionTable peer_txnData={[]} />
+                <RecentPeerTransactionTable peer_txnData={txnData} />
             </div>
         </PageBaseUi>
     )
