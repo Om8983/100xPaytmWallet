@@ -89,6 +89,7 @@ export const Signin = () => {
                                 type="email"
                                 register={register}
                                 id="email"
+                                value={watch("email") ?? ""}
                                 placeholder="example@gmail.com" />
                             <Errordiv
                                 error={errors?.email}
@@ -103,6 +104,7 @@ export const Signin = () => {
                                 id="phone"
                                 maxlength={10}
                                 minlength={10}
+                                value={watch("phone") ?? ""}
                                 placeholder="ex: 1234567890"
                             />
                             <Errordiv
@@ -116,6 +118,7 @@ export const Signin = () => {
                                 type="password"
                                 register={register}
                                 id="password"
+                                value={watch("password") ?? ""}
                                 placeholder="********"
                             />
                             <Errordiv

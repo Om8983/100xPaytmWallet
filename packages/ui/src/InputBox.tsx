@@ -10,8 +10,10 @@ type Props<T extends FieldValues> = { //this means whatever the form type i pass
     minlength?: number;
     register: UseFormRegister<T>;
     setValue?: Dispatch<React.SetStateAction<string>>
+    className?: string;
+    value: any
 }
-export const InputBox = <T extends FieldValues>({ type, id, placeholder, setValue, maxlength, minlength, register }: Props<T>) => {
+export const InputBox = <T extends FieldValues>({ type, id, placeholder, setValue, maxlength, minlength, register, className, value }: Props<T>) => {
     // const handleOnChange = (e: ChangeEvent<HTMLInputElement>) => {
     //     setValue?.(e.target.value)
     // }
@@ -25,8 +27,9 @@ export const InputBox = <T extends FieldValues>({ type, id, placeholder, setValu
             minLength={minlength}
             maxLength={maxlength}
             {...register(id)}
-            className={`w-[280px] h-[40px] p-2 text-start text-sm font-[parareg] tracking-wider ring-[0.5px] placeholder:text-sm placeholder:font-[paralight] ring-gray-600 rounded-lg transition-transform delay-150 ease-in  focus-within:shadow-md focus-within:ring-gray-800 hover:ring-slate-600 outline-none`}
+            className={`w-[280px] h-[40px] p-2 text-start text-sm font-[parareg] tracking-wider ring-[0.5px] placeholder:text-sm placeholder:font-[paralight] ring-gray-600 rounded-lg transition-transform delay-150 ease-in  focus-within:shadow-md focus-within:ring-gray-800 hover:ring-slate-600 outline-none ${className}`}
             placeholder={placeholder}
+            value={value}
         // no need of onchange. Basically here onchange was overwriting the logic performed by the 'register'. It wasn't registering the dynamic values rather when a tab or any change has happened then only onchange ran which further stores the respective value. hence the here in case of login it wasn't working properly
         // onChange={handleOnChange}>
         >
