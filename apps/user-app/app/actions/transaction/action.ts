@@ -7,6 +7,7 @@ import {
   P2PData,
   WalletData,
 } from "../../../components/BalanceComp/TransactionTable";
+import { PeerData } from "../../../components/p2pTransferComponents/QuickPayments";
 
 // export type P2PTxnData = {
 //   amount: number;
@@ -68,6 +69,53 @@ export const getP2PtxnData = async (userId: string): Promise<P2PData[]> => {
     }));
 
     return mappedData;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// server action for getting the peers to whom the current logged in user has made the most amount of transfers.
+// that means i have to fetch data based on the highest amount of total tranfers made till date.
+export const getFrequentPeerTransfer = async (): Promise<PeerData[]> => {
+  try {
+    const user = await getUserOrThrow();
+    const userId = user.id;
+
+    const data = await prisma.peerTransfer.groupBy({
+      by: ["receiverId"],
+      where: {
+        senderId: userId,
+        status: "SUCCESS",
+      },
+      _sum: {
+        amount: true,
+      },
+      orderBy: {
+        _sum: {
+          amount: "desc",
+        },
+      },
+      take: 5,
+    });
+
+    const enriched = await Promise.all(
+      data.map(async (item) => {
+        const receiver = await prisma.user.findUnique({
+          where: { id: item.receiverId },
+          select: {
+            email: true,
+          },
+        });
+
+        return {
+          receiver_id: item.receiverId,
+          receiver_email: receiver?.email as string,
+          totalAmount: (item._sum.amount || 0) / 100,
+        };
+      }),
+    );
+
+    return enriched;
   } catch (error) {
     throw error;
   }
