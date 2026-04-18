@@ -18,7 +18,7 @@ export default async function page({ searchParams }: SearchParams) {
     const userSession = await getUserOrThrow();
     const userId = userSession.id;
 
-    const { txnType = "wallet" } = searchParams;
+    const { txnType = "wallet" } = await searchParams;
     let txnData = []
     const walletTransactionCols = [
         { key: "txn_id", label: "Transaction Id" },
@@ -34,9 +34,12 @@ export default async function page({ searchParams }: SearchParams) {
         { key: "txn_id", label: "Transaction Id" },
         { key: "amount", label: "Amount" },
         { key: "txn_status", label: "Status" },
+        { key: "txn_type", label: "Type" },
         // { key: "provider", label: "Provider" },
-        { key: "sender", label: "Created At" },
-        { key: "receiver", label: "Completed At" },
+        { key: "start_time", label: "Created At" },
+        { key: "end_time", label: "Completed At" },
+        { key: "sender", label: "Sender" },
+        { key: "receiver", label: "Receiver" },
     ]
 
     if (txnType === "p2p") {

@@ -36,7 +36,7 @@ export const AllTxnData = ({ txn_data, columns }: TableProps) => {
             <TBody body={txn_data} columns={columns} >
                 {
                     txn_data.map((row: any) => (
-                        <tr key={row?.txn_id} className='border-b hover:bg-neutral-50'>
+                        <tr key={row?.id} className='border-b hover:bg-neutral-50'>
                             {columns.map(col => (
                                 <td key={col.key as string} className={`px-3 py-2 ${col.key === "txn_id" && "w-[28rem]"}`}>
                                     {

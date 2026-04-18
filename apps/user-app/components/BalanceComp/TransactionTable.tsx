@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { AllTxnData } from './AllTxnData';
 
 export type WalletData = {
+    id: string;
     txn_id: string;
     amount: number;
     txn_status: string;
@@ -26,7 +27,9 @@ export type WalletData = {
 }
 
 export type P2PData = {
+    id: string;
     txn_id: string;
+    txn_type: 'sent' | 'received'
     amount: number;
     txn_status: string;
     sender: string;

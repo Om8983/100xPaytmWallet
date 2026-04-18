@@ -1,6 +1,6 @@
 "use client"
 import { motion } from 'motion/react'
-import { ChangeEvent, Dispatch } from 'react';
+import { Dispatch } from 'react';
 import { FieldValues, Path, UseFormRegister } from 'react-hook-form';
 type Props<T extends FieldValues> = { //this means whatever the form type i pass from useForm<T>(...). Path<T> means id must be a valid field name of that form
     type: string;
@@ -11,14 +11,16 @@ type Props<T extends FieldValues> = { //this means whatever the form type i pass
     register: UseFormRegister<T>;
     setValue?: Dispatch<React.SetStateAction<string>>
     className?: string;
-    value: any
+    value: any;
+    valueAsNumber?: boolean
 }
-export const InputBox = <T extends FieldValues>({ type, id, placeholder, setValue, maxlength, minlength, register, className, value }: Props<T>) => {
+export const InputBox = <T extends FieldValues>({ type, id, placeholder, setValue, maxlength, minlength, register, className, value, valueAsNumber = false }: Props<T>) => {
     // const handleOnChange = (e: ChangeEvent<HTMLInputElement>) => {
     //     setValue?.(e.target.value)
     // }
     return (
         <motion.input
+            autoComplete='off'
             initial={{ opacity: 0, }}
             animate={{ opacity: 1, }}
             transition={{ duration: 0.5, ease: "easeInOut", delay: 0.5 }}
@@ -26,7 +28,7 @@ export const InputBox = <T extends FieldValues>({ type, id, placeholder, setValu
             id={id}
             minLength={minlength}
             maxLength={maxlength}
-            {...register(id)}
+            {...register(id, { valueAsNumber: valueAsNumber })}
             className={`w-[280px] h-[40px] p-2 text-start text-sm font-[parareg] tracking-wider ring-[0.5px] placeholder:text-sm placeholder:font-[paralight] ring-gray-600 rounded-lg transition-transform delay-150 ease-in  focus-within:shadow-md focus-within:ring-gray-800 hover:ring-slate-600 outline-none ${className}`}
             placeholder={placeholder}
             value={value}

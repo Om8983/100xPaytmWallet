@@ -44,55 +44,52 @@ export const RecentTransactions = ({ transactions }: RecentTxnProps) => {
 
             <div className="space-y-0 flex-1 divide-y divide-border">
                 {
-                    !transactions ?
-                        <img src="/nodatafound.png" alt="no data found" className="mx-auto mt-[5rem]" width={300} height={300} />
-                        :
-                        transactions.map((transaction) => (
-                            <div
-                                key={transaction.txn_id}
-                                className="flex items-center justify-between py-4 first:pt-0 last:pb-0 hover:bg-secondary/40 px-2 -mx-2 rounded-lg transition-colors duration-150"
-                            >
-                                <div className="flex items-center gap-3 flex-1 min-w-0">
-                                    <div
-                                        className={`p-2.5 rounded-lg flex-shrink-0 transition-all duration-200 ${transaction.type === 'withdraw'
-                                            ? 'bg-destructive/15 text-destructive'
-                                            : 'bg-accent/15 text-accent'
-                                            }`}
-                                    >
-                                        {transaction.type === 'withdraw' ? (
-                                            <IconArrowUpRight className="h-4 w-4" color="green" />
-                                        ) : (
-                                            <IconArrowDownLeft className="h-4 w-4" color="red" />
-                                        )}
-                                    </div>
-
-                                    <div className="min-w-0 flex-1">
-                                        <p className="text-sm font-semibold text-foreground truncate">
-                                            {transaction.type === 'added' ? "Money Added" : "Money Withdrawn"}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground">
-                                            {convertModernDate(transaction.end_time.date)} {convertModernTime(transaction.end_time.time)}
-                                        </p>
-                                    </div>
+                    transactions?.map((transaction) => (
+                        <div
+                            key={transaction.txn_id}
+                            className="flex items-center justify-between py-4 first:pt-0 last:pb-0 hover:bg-secondary/40 px-2 -mx-2 rounded-lg transition-colors duration-150"
+                        >
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                                <div
+                                    className={`p-2.5 rounded-lg flex-shrink-0 transition-all duration-200 ${transaction.type === 'withdraw'
+                                        ? 'bg-destructive/15 text-destructive'
+                                        : 'bg-accent/15 text-accent'
+                                        }`}
+                                >
+                                    {transaction.type === 'withdraw' ? (
+                                        <IconArrowUpRight className="h-4 w-4" color="green" />
+                                    ) : (
+                                        <IconArrowDownLeft className="h-4 w-4" color="red" />
+                                    )}
                                 </div>
 
-                                <div className="text-right flex-shrink-0 ml-4">
-                                    <p
-                                        className={`text-sm font-bold ${transaction.type === 'withdraw' ? 'text-foreground' : 'text-accent'
-                                            }`}
-                                    >
-                                        {transaction.type === 'withdraw' ? '−' : '+'}${transaction.amount.toFixed(2)}
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-sm font-semibold text-foreground truncate">
+                                        {transaction.type === 'added' ? "Money Added" : "Money Withdrawn"}
                                     </p>
-                                    <span
-                                        className={`inline-block text-xs px-2.5 py-1 rounded-full text-center mt-1 font-medium border ${getStatusColor(
-                                            transaction.txn_status
-                                        )}`}
-                                    >
-                                        {getStatusLabel(transaction.txn_status)}
-                                    </span>
+                                    <p className="text-xs text-muted-foreground">
+                                        {convertModernDate(transaction.end_time.date)} {convertModernTime(transaction.end_time.time)}
+                                    </p>
                                 </div>
                             </div>
-                        ))
+
+                            <div className="text-right flex-shrink-0 ml-4">
+                                <p
+                                    className={`text-sm font-bold ${transaction.type === 'withdraw' ? 'text-foreground' : 'text-accent'
+                                        }`}
+                                >
+                                    {transaction.type === 'withdraw' ? '−' : '+'}${transaction.amount.toFixed(2)}
+                                </p>
+                                <span
+                                    className={`inline-block text-xs px-2.5 py-1 rounded-full text-center mt-1 font-medium border ${getStatusColor(
+                                        transaction.txn_status
+                                    )}`}
+                                >
+                                    {getStatusLabel(transaction.txn_status)}
+                                </span>
+                            </div>
+                        </div>
+                    ))
                 }
             </div>
         </div>
