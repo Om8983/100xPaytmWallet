@@ -20,7 +20,10 @@ import { PeerData } from "../../../components/p2pTransferComponents/QuickPayment
 // };
 // peer to peer server action for user currently being logged in.
 // make sure you convert the balance back to decimal if any transfers are done in decimal
-export const getP2PtxnData = async (userId: string): Promise<P2PData[]> => {
+export const getP2PtxnData = async (
+  userId: string,
+  take?: number,
+): Promise<P2PData[]> => {
   try {
     const user = await prisma.user.findUnique({
       where: {
@@ -33,6 +36,7 @@ export const getP2PtxnData = async (userId: string): Promise<P2PData[]> => {
           orderBy: {
             startTime: "desc",
           },
+          take: take,
           select: {
             amount: true,
             status: true,
@@ -134,6 +138,7 @@ export const getFrequentPeerTransfer = async (): Promise<PeerData[]> => {
 // make sure you convert the balance back to decimal if any transfers are done in decimal
 export const getBalanceTxnData = async (
   userId: string,
+  take?: number,
 ): Promise<WalletData[]> => {
   try {
     const user = await prisma.user.findUnique({
@@ -145,6 +150,7 @@ export const getBalanceTxnData = async (
           orderBy: {
             startTime: "desc",
           },
+          take: take,
           select: {
             // well here we are directly treating id as the txnId rather being token the txnId. Since we know that the token is supposed to be the token that the bank server will pass us and on that basis we will open the modal for the selected bank and then while making payment we wil also send that token so that the bank can verify the token is valid and will proceed the payment with respect to that.
             id: true,
@@ -237,7 +243,6 @@ export const initTransaction = async ({
       msg: "Transaction Successfull.",
     };
   } catch (error) {
-    console.log("error", error);
     throw new Error();
   }
 };
@@ -396,7 +401,11 @@ export const peerTransfer = async ({
       });
       return initPeerTxn.id;
     });
-    return { msg: "Payment Success", success: true, paymentId: result }; // the result will be the payment id for the txn been created
+    return {
+      msg: "Payment Initiated Successfully",
+      success: true,
+      paymentId: result,
+    }; // the result will be the payment id for the txn been created
   } catch (error) {
     const payment = await prisma.peerTransfer.create({
       data: {
@@ -422,12 +431,14 @@ export const confirmPeerTransfer = async ({
   const userSession = await getUserOrThrow();
   const userId = userSession?.id;
   try {
+    console.log("paymentId", paymentId);
     if (!paymentId) {
       return {
-        msg: "Payment Failed",
+        msg: "Payment Credit Failed due to no id",
         success: false,
       };
     }
+    console.log("initiating txn");
     await prisma.$transaction(async (txn) => {
       const txnAmount = await txn.peerTransfer.update({
         where: {
@@ -438,19 +449,28 @@ export const confirmPeerTransfer = async ({
         },
         select: {
           amount: true,
+          receiverId: true,
         },
       });
       // deducting that amount from the senders wallet
       await txn.balance.update({
         where: {
-          id: userId,
+          userId: userId,
         },
         data: {
           balance: { decrement: txnAmount.amount },
         },
       });
+      await txn.balance.update({
+        where: {
+          userId: txnAmount.receiverId,
+        },
+        data: {
+          balance: { increment: txnAmount.amount },
+        },
+      });
     });
-    return { msg: "Payment Success", success: true };
+    return { msg: "Payment Credit Success ", success: true };
   } catch (error) {
     await prisma.peerTransfer.update({
       where: {
@@ -460,6 +480,6 @@ export const confirmPeerTransfer = async ({
         status: "FAILED",
       },
     });
-    return { msg: "Payment Failed", success: false };
+    return { msg: "Payment Credit Failed during catch", success: false };
   }
 };

@@ -97,10 +97,19 @@ export const PeerTransferForm = () => {
                 return
             }
 
-            const { success: paymentStatus, msg: txn_msg }: { success: boolean, msg: string } = await confirmPeerTransfer({ paymentId: paymentId })
-            if (!paymentStatus) {
+            if (paymentId) {
+                const { success: paymentStatus, msg: txn_msg }: { success: boolean, msg: string } = await confirmPeerTransfer({ paymentId: paymentId })
+                if (!paymentStatus) {
+                    setIsLoading(false);
+                    setShowSuccess(false);
+                    toast.error("Payment Unsuccesfull!")
+                    return
+                }
+            }
+            else {
                 setIsLoading(false);
                 setShowSuccess(false);
+                reset()
                 toast.error("Payment Unsuccesfull!")
                 return
             }
