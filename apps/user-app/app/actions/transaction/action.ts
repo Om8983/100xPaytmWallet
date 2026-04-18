@@ -38,6 +38,9 @@ export const getP2PtxnData = async (
           },
           take: take,
           select: {
+            id: true,
+            txn_id: true,
+            txn_type: true,
             amount: true,
             status: true,
             startTime: true,
@@ -57,7 +60,9 @@ export const getP2PtxnData = async (
     }
 
     const mappedData: P2PData[] = user.Sender.map((txn) => ({
-      txn_id: user.token,
+      id: txn.id,
+      txn_id: txn.txn_id,
+      txn_type: txn.txn_type as "sent" | "received",
       sender: user.email,
       amount: txn.amount / 100,
       txn_status: txn.status,
@@ -383,69 +388,88 @@ export const peerTransfer = async ({
     return {
       msg: "Payment Failed",
       success: false,
-      paymentId: null,
+      paymentInfo: null,
     };
   }
   try {
+    const txn_id = `TXN_${crypto.randomUUID()}`;
     const result = await prisma.$transaction(async (txn) => {
       const initPeerTxn = await txn.peerTransfer.create({
         data: {
           status: "PENDING",
-          amount: amount,
+          amount: amount * 100,
           senderId: userId,
           receiverId: receiverId,
+          txn_id: txn_id,
         },
         select: {
           id: true,
+          txn_id: true,
         },
       });
-      return initPeerTxn.id;
+      await txn.peerTransfer.update({
+        where: {
+          id: initPeerTxn.id,
+          senderId: userId,
+        },
+        data: {
+          txn_type: "sent",
+        },
+      });
+      await txn.peerTransfer.update({
+        where: {
+          id: initPeerTxn.id,
+          receiverId: receiverId,
+        },
+        data: {
+          txn_type: "received",
+        },
+      });
+      return {
+        id: initPeerTxn.id,
+        txn_id: initPeerTxn.txn_id,
+      };
     });
+
     return {
       msg: "Payment Initiated Successfully",
       success: true,
-      paymentId: result,
+      paymentInfo: {
+        id: result.id,
+        txn_id: result.txn_id,
+      },
     }; // the result will be the payment id for the txn been created
   } catch (error) {
-    const payment = await prisma.peerTransfer.create({
-      data: {
-        status: "FAILED",
-        amount: amount,
-        senderId: userId,
-        receiverId: receiverId,
-      },
-      select: {
-        id: true,
-      },
-    });
-    return { msg: "Payment Failed", success: false, paymentId: payment.id };
+    return { msg: "Payment Failed", success: false, paymentInfo: null };
   }
 };
 
 // confirming the status of the payment once the request for peertransfer is success
 export const confirmPeerTransfer = async ({
   paymentId,
+  txn_id,
 }: {
   paymentId: string | null;
+  txn_id: string;
 }) => {
   const userSession = await getUserOrThrow();
   const userId = userSession?.id;
   try {
-    console.log("paymentId", paymentId);
     if (!paymentId) {
       return {
         msg: "Payment Credit Failed due to no id",
         success: false,
       };
     }
-    console.log("initiating txn");
     await prisma.$transaction(async (txn) => {
       const txnAmount = await txn.peerTransfer.update({
         where: {
           id: paymentId,
+          txn_id: txn_id,
         },
         data: {
           status: "SUCCESS",
+          endTime: new Date(),
         },
         select: {
           amount: true,
@@ -475,6 +499,7 @@ export const confirmPeerTransfer = async ({
     await prisma.peerTransfer.update({
       where: {
         id: paymentId as string,
+        txn_id: txn_id,
       },
       data: {
         status: "FAILED",

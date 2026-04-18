@@ -1,9 +1,7 @@
 "use client";
 import React from 'react'
-import { Table } from '../Table';
-import { THead } from '@repo/ui/THead';
-import { TBody } from '@repo/ui/TBody';
 import { P2PData } from '../BalanceComp/TransactionTable';
+import { AllTxnData } from '../BalanceComp/AllTxnData';
 
 
 type PeerTableData = {
@@ -17,24 +15,17 @@ export const RecentPeerTransactionTable = ({ peer_txnData }: PeerTableData) => {
         { key: "amount", label: "Amount" },
         { key: "txn_status", label: "Status" },
         // { key: "provider", label: "Provider" },
-        { key: "sender", label: "Created At" },
-        { key: "receiver", label: "Completed At" },
+        { key: "txn_type", label: "Type" },
+        { key: "start_time", label: "Created At" },
+        { key: "end_time", label: "Completed At" },
+        { key: "sender", label: "Sender" },
+        { key: "receiver", label: "Receiver" },
     ]
 
     return (
         <>
             <p className="text-3xl mb-2">Recent Peer Transactions</p>
-            <Table className='border rounded-md'>
-                <THead header={p2pTxnCols.map(c => c.label)} />
-                <TBody body={peer_txnData} columns={p2pTxnCols}>
-                    {
-                        !peer_txnData ?
-                            <img src="/nodatafound.png" alt="no data found" className="mx-auto mt-[5rem]" width={300} height={300} />
-                            :
-                            <></>
-                    }
-                </TBody>
-            </Table>
+            <AllTxnData txn_data={peer_txnData} columns={p2pTxnCols} />
         </>
     )
 }

@@ -38,7 +38,11 @@ export const PeerTransferForm = () => {
 
     const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<any>({
         resolver: zodResolver(peerTransferSchema),
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            phone: "",
+            amount: 0
+        }
     })
 
     const phoneDropRef = useRef(null)
@@ -88,7 +92,7 @@ export const PeerTransferForm = () => {
         }
 
         try {
-            const { success, msg, paymentId }: { success: boolean, msg: string, paymentId: string | null } = await peerTransfer(payload)
+            const { success, msg, paymentInfo }: { success: boolean, msg: string, paymentInfo: { id: string, txn_id: string } | null } = await peerTransfer(payload)
             if (!success) {
                 setIsLoading(false);
                 setShowSuccess(false);
@@ -97,8 +101,8 @@ export const PeerTransferForm = () => {
                 return
             }
 
-            if (paymentId) {
-                const { success: paymentStatus, msg: txn_msg }: { success: boolean, msg: string } = await confirmPeerTransfer({ paymentId: paymentId })
+            if (paymentInfo?.id) {
+                const { success: paymentStatus, msg: txn_msg }: { success: boolean, msg: string } = await confirmPeerTransfer({ paymentId: paymentInfo.id, txn_id: paymentInfo.txn_id })
                 if (!paymentStatus) {
                     setIsLoading(false);
                     setShowSuccess(false);
@@ -157,7 +161,7 @@ export const PeerTransferForm = () => {
                             id="phone"
                             placeholder="ex : 1234567890"
                             className="w-full"
-                            value={watch('phone') ?? ""}
+                            value={watch('phone')}
                         />
                         <p
                             className="absolute right-4 top-3"
@@ -175,7 +179,7 @@ export const PeerTransferForm = () => {
                                 animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
                                 transition={{ duration: 0.3, ease: "easeInOut" }}
                                 exit={{ opacity: 0, scale: 0.8, filter: "blur(6px)" }}
-                                className="absolute flex flex-col gap-3 px-2 py-4 overflow-y-scroll scroll-smooth  text-sm w-full justify-center items-start min-h-[40px] max-h-[140px] shadow-xl bg-white rounded-xl top-[5.5rem] z-30 border-[1px] border-neutral-100">
+                                className="absolute flex flex-col gap-3 px-2 py-4 overflow-y-scroll scroll-smooth  text-sm w-full justify-center items-start min-h-[40px] max-h-[140px] shadow-xl bg-white rounded-xl top-[5.5rem] z-30 border-[1px] border-neutral-100 cursor-pointer">
                                 {
                                     users?.length === 0 ?
                                         <span className="flex gap-2 items-center text-base"> <IconZoomExclamationFilled size={22} className=" drop-shadow-lg" color="#7684f1" /> No contact found</span>
@@ -213,7 +217,8 @@ export const PeerTransferForm = () => {
                             id="amount"
                             placeholder="0"
                             className="w-full pl-8 "
-                            value={watch('amount') ?? ""}
+                            value={watch('amount')}
+                            valueAsNumber={true}
                         />
                     </div>
 

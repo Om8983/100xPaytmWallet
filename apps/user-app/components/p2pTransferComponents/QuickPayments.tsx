@@ -46,7 +46,7 @@ export const QuickPayments = ({ data }: QuickPaymentDataType) => {
                         <img src="/nodatafound.png" alt="no data found" className="mx-auto mt-[5rem]" width={300} height={300} />
                         :
                         data?.map((user) => (
-                            <div className='relative flex items-center justify-between'>
+                            <div key={user.receiver_id} className='relative flex items-center justify-between'>
                                 <div className='flex gap-2'>
                                     {/* img */}
                                     <div className='w-10 h-10 rounded-full border-[1px]'></div>
