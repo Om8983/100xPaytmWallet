@@ -12,7 +12,7 @@ export default async function page() {
     const userSession = await getUserOrThrow()
     const userId = userSession?.id
 
-    const balanceTxnCacheFn = unstable_cache(() => getBalanceTxnData(userId), ['balance-txn', userId], {
+    const balanceTxnCacheFn = unstable_cache(() => getBalanceTxnData(userId, 5), ['balance-txn', userId], {
         tags: ['balanceTxnData'],
         revalidate: 10
     });
@@ -28,8 +28,7 @@ export default async function page() {
                     </AmountCardContainer>
                 </div>
                 <div className='flex items-center gap-2 w-full'>
-                    <TransferForm
-                    />
+                    <TransferForm />
                     <RecentTransactions transactions={txnData} />
                 </div>
             </div>

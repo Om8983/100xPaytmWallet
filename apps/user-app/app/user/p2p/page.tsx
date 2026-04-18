@@ -12,7 +12,7 @@ export default async function page() {
     const userSession = await getUserOrThrow()
     const userId = userSession?.id
 
-    const p2pTxndataCacheFn = unstable_cache(() => getP2PtxnData(userId), ['balance-txn', userId], {
+    const p2pTxndataCacheFn = unstable_cache(() => getP2PtxnData(userId, 5), ['balance-txn', userId], {
         tags: ['balanceTxnData'],
         revalidate: 10
     });
