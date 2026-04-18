@@ -29,6 +29,9 @@ export const getP2PtxnData = async (userId: string): Promise<P2PData[]> => {
         token: true,
         email: true,
         Sender: {
+          orderBy: {
+            startTime: "desc",
+          },
           select: {
             amount: true,
             status: true,
@@ -91,6 +94,9 @@ export const getBalanceTxnData = async (
       },
       select: {
         OnRamping: {
+          orderBy: {
+            startTime: "desc",
+          },
           select: {
             // well here we are directly treating id as the txnId rather being token the txnId. Since we know that the token is supposed to be the token that the bank server will pass us and on that basis we will open the modal for the selected bank and then while making payment we wil also send that token so that the bank can verify the token is valid and will proceed the payment with respect to that.
             id: true,
@@ -132,6 +138,8 @@ export const getBalanceTxnData = async (
     throw error;
   }
 };
+
+// --------------------------------------- POST SERVER ACTIONS ------------------------------------------
 
 type WalletProps = {
   amount: number;
