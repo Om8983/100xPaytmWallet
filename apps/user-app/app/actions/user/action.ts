@@ -17,7 +17,7 @@ export default async function getUserBalance() {
         },
       },
     });
-    return user?.Balance?.balance;
+    return (user?.Balance?.balance as number) / 100;
   } catch (error) {
     return Error;
   }

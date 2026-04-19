@@ -34,6 +34,7 @@ export type P2PData = {
     txn_status: string;
     sender: string;
     receiver: string;
+    timeStamp: Date;
     start_time: {
         date: string,
         time: string

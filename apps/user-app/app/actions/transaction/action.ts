@@ -52,6 +52,26 @@ export const getP2PtxnData = async (
             },
           },
         },
+        Receiver: {
+          orderBy: {
+            startTime: "desc",
+          },
+          take: take,
+          select: {
+            id: true,
+            txn_id: true,
+            txn_type: true,
+            amount: true,
+            status: true,
+            startTime: true,
+            endTime: true,
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -59,25 +79,70 @@ export const getP2PtxnData = async (
       throw new Error("No data found!");
     }
 
-    const mappedData: P2PData[] = user.Sender.map((txn) => ({
-      id: txn.id,
-      txn_id: txn.txn_id,
-      txn_type: txn.txn_type as "sent" | "received",
-      sender: user.email,
-      amount: txn.amount / 100,
-      txn_status: txn.status,
-      start_time: {
-        date: txn.startTime.toLocaleDateString(),
-        time: txn.startTime.toLocaleTimeString(),
-      },
-      end_time: {
-        date: txn.endTime !== null ? txn.endTime.toLocaleDateString() : "",
-        time: txn.endTime !== null ? txn.endTime.toLocaleTimeString() : "",
-      },
-      receiver: txn.receiver.email,
-    }));
+    const allTxn = [
+      ...user.Sender.map((txn) => ({
+        id: txn.id,
+        txn_id: txn.txn_id,
+        txn_type: txn.txn_type as "sent" | "received",
+        sender: user.email,
+        receiver: txn.receiver.email,
+        amount: txn.amount / 100,
+        txn_status: txn.status,
+        timeStamp: txn.startTime,
+        start_time: {
+          date: txn.startTime.toLocaleDateString(),
+          time: txn.startTime.toLocaleTimeString(),
+        },
+        end_time: {
+          date: txn.endTime !== null ? txn.endTime.toLocaleDateString() : "",
+          time: txn.endTime !== null ? txn.endTime.toLocaleTimeString() : "",
+        },
+      })),
+      ...user.Receiver.map((txn) => ({
+        id: txn.id,
+        txn_id: txn.txn_id,
+        txn_type: txn.txn_type as "sent" | "received",
+        sender: txn.user.email,
+        receiver: user.email,
+        amount: txn.amount / 100,
+        txn_status: txn.status,
+        timeStamp: txn.startTime,
+        start_time: {
+          date: txn.startTime.toLocaleDateString(),
+          time: txn.startTime.toLocaleTimeString(),
+        },
+        end_time: {
+          date: txn.endTime !== null ? txn.endTime.toLocaleDateString() : "",
+          time: txn.endTime !== null ? txn.endTime.toLocaleTimeString() : "",
+        },
+      })),
+    ];
+    // descending sorting
+    const sorted = allTxn.sort(
+      (a, b) =>
+        new Date(b.timeStamp).getTime() - new Date(a.timeStamp).getTime(),
+    );
+    return sorted;
+    // const mappedData: P2PData[] = user.Sender.map((txn) => ({
+    //   id: txn.id,
+    //   txn_id: txn.txn_id,
+    //   txn_type: txn.txn_type as "sent" | "received",
+    //   sender: user.email,
+    //   amount: txn.amount / 100,
+    //   txn_status: txn.status,
+    //   timestamp: txn.startTime,
+    //   start_time: {
+    //     date: txn.startTime.toLocaleDateString(),
+    //     time: txn.startTime.toLocaleTimeString(),
+    //   },
+    //   end_time: {
+    //     date: txn.endTime !== null ? txn.endTime.toLocaleDateString() : "",
+    //     time: txn.endTime !== null ? txn.endTime.toLocaleTimeString() : "",
+    //   },
+    //   receiver: txn.receiver.email,
+    // }));
 
-    return mappedData;
+    // return mappedData;
   } catch (error) {
     throw error;
   }
@@ -224,21 +289,40 @@ export const initTransaction = async ({
     }
     const token = `TXN_${crypto.randomUUID()}`;
 
-    const createPayment = await prisma.onRamping.create({
-      data: {
-        userId: userId,
-        status: "Processing",
-        provider: bankAcc,
-        amount: amount * 100, // to avoid the decimal values being stored to the database.
-        token: token,
-        txn_type: txnType,
-      },
+    const initPayment = await prisma.$transaction(async (txn) => {
+      if (txnType === "withdraw") {
+        const userWalletBalance = await txn.user.findFirst({
+          where: {
+            id: userId,
+          },
+          select: {
+            Balance: {
+              select: {
+                balance: true,
+              },
+            },
+          },
+        });
+        if ((userWalletBalance?.Balance?.balance as number) < amount) {
+          return false;
+        }
+      }
+      await txn.onRamping.create({
+        data: {
+          userId: userId,
+          status: "Processing",
+          provider: bankAcc,
+          amount: amount * 100, // to avoid the decimal values being stored to the database.
+          token: token,
+          txn_type: txnType,
+        },
+      });
     });
-    if (!createPayment) {
+    if (!initPayment) {
       return {
         success: false,
         token: null,
-        msg: "Internal Server Error. Unable to create payment.",
+        msg: "",
       };
     }
 
