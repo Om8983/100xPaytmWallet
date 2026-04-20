@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { confirmPeerTransfer, peerTransfer } from "../../app/actions/transaction/action";
 import { toast } from "sonner";
 import { useDebounce } from "../../app/customHoolks/useDebounce";
-import { getUserPhone } from "../../app/actions/user/action";
+import getUserBalance, { getUserPhone } from "../../app/actions/user/action";
 import { AnimatePresence, motion } from "motion/react"
 import { InputBox } from "@repo/ui/InputBox"
 import { Label } from "@repo/ui/Label";
@@ -90,6 +90,16 @@ export const PeerTransferForm = () => {
             amount: data.amount,
             receiverId: receiverId
         }
+
+        const userBalance = await getUserBalance()
+        if (data.amount > userBalance) {
+            setIsLoading(false);
+            setShowSuccess(false);
+            reset()
+            toast.warning("Insufficient User Balance.")
+            return
+        }
+
 
         try {
             const { success, msg, paymentInfo }: { success: boolean, msg: string, paymentInfo: { id: string, txn_id: string } | null } = await peerTransfer(payload)

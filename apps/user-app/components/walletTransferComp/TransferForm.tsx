@@ -9,6 +9,7 @@ import { Dropdown } from "@repo/ui/Dropdown/Dropdown";
 import { DropdownItem } from "@repo/ui/Dropdown/DropdownItem";
 import { confirmTxnStatus, initTransaction, withdrawWalletAmt } from "../../app/actions/transaction/action";
 import { toast } from "sonner";
+import getUserBalance from "../../app/actions/user/action";
 
 interface TransferFormProps {
     onTransferComplete: () => void;
@@ -45,7 +46,6 @@ export const TransferForm = () => {
             ...data,
             txnType: activeTab === "add" ? 'added' : "withdraw"
         }
-
         try {
             const { success, msg, token }: { success: boolean, msg: string, token: string | null } = await initTransaction(initiatePaymentPayload)
             if (!success && !token) {
@@ -66,6 +66,14 @@ export const TransferForm = () => {
                     return
                 }
             } else if (activeTab === "withdraw") {
+                const userBalance = getUserBalance()
+                if (data.amount > userBalance) {
+                    setIsLoading(false);
+                    setShowSuccess(false);
+                    reset()
+                    toast.warning("Insufficient User Balance")
+                    return
+                }
                 const { success: paymentStatus, msg: txn_msg }: { success: boolean, msg: string } = await withdrawWalletAmt({ token: token ?? "", amount: data?.amount })
                 if (!paymentStatus) {
                     setIsLoading(false);
