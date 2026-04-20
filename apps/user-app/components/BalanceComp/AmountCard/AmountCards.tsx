@@ -7,7 +7,7 @@ import { Button } from '@repo/ui/button'
 import { IconCircleCheckFilled, IconCurrencyRupee } from '@tabler/icons-react'
 import { AmountCardContainer } from './AmountCardContainer';
 import { NumberCounter } from "@repo/ui/NumberCounter"
-import getUserBalance from '../../../app/actions/user/action';
+import getUserBalance, { MoneySpentReceive } from '../../../app/actions/user/action';
 import { toast } from 'sonner';
 
 
@@ -19,7 +19,8 @@ import { toast } from 'sonner';
 type CardGlow = {
     angle: number  // degrees, for --start
 }
-export const AmountCards = () => {
+
+export const AmountCards = ({ moneySpent, moneyReceived }: { moneySpent: MoneySpentReceive, moneyReceived: MoneySpentReceive }) => {
     const shimmerStyle = `
     @keyframes shimmer {
       0% { transform: translateX(-100%); }
@@ -81,6 +82,36 @@ export const AmountCards = () => {
     //     setGlowAngles(updatedAngles)
     //     setCardActive(updatedActive)
     // }
+
+
+    const [spentAmount, setSpentAmount] = useState<number>(0)
+    const [receiveAmount, setReceiveAmount] = useState<number>(0)
+
+    const [spentLoading, setSpentLoading] = useState<boolean>(true)
+    const [receiveLoading, setReceiveLoading] = useState<boolean>(true)
+    useEffect(() => {
+
+        if (!moneySpent.success) {
+            setSpentAmount(0)
+            setSpentLoading(false)
+            toast.error("Failed to fetch Money Spent. Please try after some time!")
+            return
+        } else {
+            setSpentAmount(moneySpent.amount)
+            setSpentLoading(false)
+        }
+    }, [moneySpent])
+    useEffect(() => {
+        if (!moneyReceived.success) {
+            setReceiveAmount(0)
+            setReceiveLoading(false)
+            toast.error("Failed to fetch Money Spent. Please try after some time!")
+            return
+        } else {
+            setReceiveAmount(moneyReceived.amount)
+            setReceiveLoading(false)
+        }
+    }, [moneyReceived])
 
     // server action to get the user balance on each click of 'check balance', which will again reset to masking state when user navigates to some other tab
     // const balance = await getUserBalance({ userId })
@@ -180,7 +211,19 @@ export const AmountCards = () => {
             >
                 <AmountCardTitle
                     showIcon={false}
-                    title="SPENDINGS" />
+                    title="SPENDINGS"
+                    classname='flex items-center'
+                >
+                    <IconCurrencyRupee size={36} />
+                    {spentLoading && (
+                        <span className="relative overflow-hidden w-20 h-7 rounded-md bg-white/20">
+                            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-[shimmer_1.2s_infinite]" />
+                        </span>
+                    )}
+                    {!spentLoading && spentAmount !== null && (
+                        <NumberCounter to={spentAmount} />
+                    )}
+                </AmountCardTitle>
                 <AmountCardContent classname="text-white" />
             </AmountCardContainer>
             <AmountCardContainer
@@ -193,7 +236,20 @@ export const AmountCards = () => {
             >
                 <AmountCardTitle
                     showIcon={false}
-                    title="RECEIVED" />
+                    title="RECEIVED"
+                    classname='flex items-center'
+                >
+                    <IconCurrencyRupee size={36} />
+                    {receiveLoading && (
+                        <span className="relative overflow-hidden w-20 h-7 rounded-md bg-white/20">
+                            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-[shimmer_1.2s_infinite]" />
+                        </span>
+                    )}
+                    {!receiveLoading && receiveAmount !== null && (
+                        <NumberCounter to={receiveAmount} />
+                    )}
+
+                </AmountCardTitle>
                 <AmountCardContent classname="text-white" />
             </AmountCardContainer>
         </div >

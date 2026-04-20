@@ -91,6 +91,7 @@ export const TransactionTable = ({ p2pTxnCols, walletTransactionCols, user_txnDa
                     <Dropdown
                         show={isTxnTypeDrop}
                         setShow={setTxnTypeDrop}
+                        className='z-50'
                     >
 
                         <DropdownItem

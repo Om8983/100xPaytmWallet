@@ -83,7 +83,7 @@ export const getP2PtxnData = async (
       ...user.Sender.map((txn) => ({
         id: txn.id,
         txn_id: txn.txn_id,
-        txn_type: txn.txn_type as "sent" | "received",
+        txn_type: txn.txn_type as "sent",
         sender: user.email,
         receiver: txn.receiver.email,
         amount: txn.amount / 100,
@@ -101,7 +101,7 @@ export const getP2PtxnData = async (
       ...user.Receiver.map((txn) => ({
         id: txn.id,
         txn_id: txn.txn_id,
-        txn_type: txn.txn_type as "sent" | "received",
+        txn_type: "received" as "received",
         sender: txn.user.email,
         receiver: user.email,
         amount: txn.amount / 100,
@@ -290,23 +290,6 @@ export const initTransaction = async ({
     const token = `TXN_${crypto.randomUUID()}`;
 
     const initPayment = await prisma.$transaction(async (txn) => {
-      if (txnType === "withdraw") {
-        const userWalletBalance = await txn.user.findFirst({
-          where: {
-            id: userId,
-          },
-          select: {
-            Balance: {
-              select: {
-                balance: true,
-              },
-            },
-          },
-        });
-        if ((userWalletBalance?.Balance?.balance as number) < amount) {
-          return false;
-        }
-      }
       await txn.onRamping.create({
         data: {
           userId: userId,
@@ -317,6 +300,7 @@ export const initTransaction = async ({
           txn_type: txnType,
         },
       });
+      return true;
     });
     if (!initPayment) {
       return {
@@ -500,15 +484,15 @@ export const peerTransfer = async ({
           txn_type: "sent",
         },
       });
-      await txn.peerTransfer.update({
-        where: {
-          id: initPeerTxn.id,
-          receiverId: receiverId,
-        },
-        data: {
-          txn_type: "received",
-        },
-      });
+      // await txn.peerTransfer.update({
+      //   where: {
+      //     id: initPeerTxn.id,
+      //     receiverId: receiverId,
+      //   },
+      //   data: {
+      //     txn_type: "received",
+      //   },
+      // });
       return {
         id: initPeerTxn.id,
         txn_id: initPeerTxn.txn_id,

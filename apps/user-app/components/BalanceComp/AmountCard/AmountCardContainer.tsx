@@ -216,7 +216,7 @@ export const AmountCardContainer =
 
                     {/* ── Card content ── */}
                     <div
-                        className={`absolute rounded-[calc(1rem-2px)] shadow-md p-5 overflow-hidden z-[1] inset-[0.05rem] ${className}`}
+                        className={`absolute rounded-[calc(1rem-2px)] shadow-xl p-5 overflow-hidden z-[1] inset-[0.05rem] border-2 border-neutral-100 ${className}`}
                     >
                         {children}
                     </div>

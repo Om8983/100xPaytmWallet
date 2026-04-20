@@ -4,7 +4,7 @@ import { THead } from '@repo/ui/THead'
 import { TBody } from '@repo/ui/TBody'
 import { AnimatePresence, motion } from 'motion/react'
 import { Tooltip } from '@repo/ui/Tooltip'
-import { IconArrowDownLeft, IconArrowUpRight, IconChevronDown } from '@tabler/icons-react'
+import { IconArrowDownLeft, IconArrowUpRight, IconCheck, IconChevronDown, IconCopy } from '@tabler/icons-react'
 import { convertModernDate, convertModernTime } from '../../lib/commonFunc'
 
 type TableProps = {
@@ -18,6 +18,8 @@ type TableProps = {
 
 export const AllTxnData = ({ txn_data, columns }: TableProps) => {
     const [hoveredTxnId, setHoveredTxnId] = useState<string | null>(null)
+    const [isCopying, setIsCopying] = useState<boolean>(false)
+
     const bankLogos = {
         hdfc: "/hdfc.png",
         icici: "/icici.png"
@@ -29,6 +31,16 @@ export const AllTxnData = ({ txn_data, columns }: TableProps) => {
         } else {
             return "bg-[#fddde2] border-[#68432d] text-[#68432d]"
         }
+    }
+
+    // handler to copy text
+    const handleCopyText = async (text: string) => {
+        setIsCopying(true)
+        await navigator.clipboard.writeText(text)
+
+        setTimeout(() => {
+            setIsCopying(false)
+        }, 1000)
     }
     return (
         <Table>
@@ -48,8 +60,10 @@ export const AllTxnData = ({ txn_data, columns }: TableProps) => {
 
                                                 className='border-2 relative rounded-xl p-2 lg:max-w-[320px] overflow-hidden text-sm hover:bg-black hover:bg-opacity-10 cursor-pointer'>
                                                 {row[col.key]?.length > 30 ?
-                                                    <span className='flex gap-2 items-center justify-between'>
-                                                        {row[col.key]?.slice(0, 30)}... <IconChevronDown size={16} />
+                                                    <span
+                                                        onClick={() => handleCopyText(row[col.key])}
+                                                        className='flex gap-2 items-center justify-between'>
+                                                        {row[col.key]?.slice(0, 30)}...{isCopying ? <IconCheck size={16} /> : <IconCopy size={16} />}
                                                     </span>
                                                     : row[col.key]}
                                             </motion.div>

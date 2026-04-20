@@ -4,8 +4,9 @@ import { TransactionTable } from "../../../components/BalanceComp/TransactionTab
 import { AmountCards } from "../../../components/BalanceComp/AmountCard/AmountCards"
 import { getBalanceTxnData, getP2PtxnData } from "../../actions/transaction/action"
 // import { getCachedData } from "../../../lib/auth/utils"
-import { revalidatePath, unstable_cache } from "next/cache"
+import { unstable_cache } from "next/cache"
 import { getUserOrThrow } from "../../../lib/auth/utils"
+import { getMoneyReceived, getMoneySpent } from "../../actions/user/action"
 
 
 type SearchParams = {
@@ -57,11 +58,15 @@ export default async function page({ searchParams }: SearchParams) {
 
         txnData = await balanceTxnCacheFn();
     }
+
+    const spending = await getMoneySpent()
+    const receivedMoney = await getMoneyReceived()
+
     return (
         <PageBaseUi>
             <PageTopBar title="Balance" />
             <div className="flex h-full px-5 flex-col gap-3 ">
-                <AmountCards />
+                <AmountCards moneyReceived={receivedMoney} moneySpent={spending} />
                 <TransactionTable p2pTxnCols={p2pTxnCols} walletTransactionCols={walletTransactionCols} user_txnData={txnData} />
             </div>
         </PageBaseUi>
