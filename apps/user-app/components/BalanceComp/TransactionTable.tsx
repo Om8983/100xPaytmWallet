@@ -47,10 +47,11 @@ export type P2PData = {
 type TableType = {
     walletTransactionCols: { key: string, label: string }[];
     p2pTxnCols: { key: string, label: string }[];
-    user_txnData: WalletData[] | P2PData[];
+    user_txnData: WalletData[];
+    p2pData: P2PData[]
 }
 
-export const TransactionTable = ({ p2pTxnCols, walletTransactionCols, user_txnData }: TableType) => {
+export const TransactionTable = ({ p2pTxnCols, walletTransactionCols, user_txnData, p2pData }: TableType) => {
 
     const searchParams = useSearchParams();
     const pathname = usePathname();   // gives the path of the current page.
@@ -122,8 +123,14 @@ export const TransactionTable = ({ p2pTxnCols, walletTransactionCols, user_txnDa
                 transition={{ duration: 0.8, ease: "easeInOut" }}
                 className="rounded-md border overflow-auto h-[100%]"
             >
-                <AllTxnData columns={txnFilterType === "wallet" ? walletTransactionCols : p2pTxnCols} txn_data={user_txnData} />
+                {
+                    txnFilterType === "wallet" ?
+                        <AllTxnData columns={walletTransactionCols} txn_data={user_txnData} />
+                        :
+                        <AllTxnData columns={p2pTxnCols} txn_data={p2pData} />
+                }
             </motion.div>
+
         </>
     )
 }

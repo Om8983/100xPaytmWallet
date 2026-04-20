@@ -1,12 +1,10 @@
 import { PageTopBar } from "../../../components/PageTopBar"
 import { PageBaseUi } from "@repo/ui/PageBaseUi"
-import { TransactionTable } from "../../../components/BalanceComp/TransactionTable"
 import { AmountCards } from "../../../components/BalanceComp/AmountCard/AmountCards"
-import { getBalanceTxnData, getP2PtxnData } from "../../actions/transaction/action"
-// import { getCachedData } from "../../../lib/auth/utils"
-import { unstable_cache } from "next/cache"
 import { getUserOrThrow } from "../../../lib/auth/utils"
 import { getMoneyReceived, getMoneySpent } from "../../actions/user/action"
+import { Suspense } from "react"
+import TransactionTableWrapper from "../../../components/BalanceComp/TransactionTableWrapper"
 
 
 type SearchParams = {
@@ -20,54 +18,19 @@ export default async function page({ searchParams }: SearchParams) {
     const userId = userSession.id;
 
     const { txnType = "wallet" } = await searchParams;
-    let txnData = []
-    const walletTransactionCols = [
-        { key: "txn_id", label: "Transaction Id" },
-        { key: "amount", label: "Amount" },
-        { key: "txn_status", label: "Status" },
-        { key: "provider", label: "Provider" },
-        { key: "start_time", label: "Created At" },
-        { key: "end_time", label: "Completed At" },
-        { key: "type", label: "Type" },
-    ]
 
-    const p2pTxnCols = [
-        { key: "txn_id", label: "Transaction Id" },
-        { key: "amount", label: "Amount" },
-        { key: "txn_status", label: "Status" },
-        { key: "txn_type", label: "Type" },
-        // { key: "provider", label: "Provider" },
-        { key: "start_time", label: "Created At" },
-        { key: "end_time", label: "Completed At" },
-        { key: "sender", label: "Sender" },
-        { key: "receiver", label: "Receiver" },
-    ]
-
-    if (txnType === "p2p") {
-        const p2pCachedFn = unstable_cache(() => getP2PtxnData(userId), ['p2p-txn', userId], {
-            tags: ['p2pTxnData'],
-            revalidate: 10
-        });
-        txnData = await p2pCachedFn()
-    } else {
-        // txnData = await getCachedData({ funcToExecute: getBalanceTxnData, key: ['balance-txn'] })
-        const balanceTxnCacheFn = unstable_cache(() => getBalanceTxnData(userId), ['balance-txn', userId], {
-            tags: ['balanceTxnData'],
-            revalidate: 10
-        });
-
-        txnData = await balanceTxnCacheFn();
-    }
-
-    const spending = await getMoneySpent()
-    const receivedMoney = await getMoneyReceived()
-
+    const [spending, receivedMoney] = await Promise.all([
+        getMoneySpent(),
+        getMoneyReceived()
+    ])
     return (
         <PageBaseUi>
             <PageTopBar title="Balance" />
             <div className="flex h-full px-5 flex-col gap-3 ">
                 <AmountCards moneyReceived={receivedMoney} moneySpent={spending} />
-                <TransactionTable p2pTxnCols={p2pTxnCols} walletTransactionCols={walletTransactionCols} user_txnData={txnData} />
+                <Suspense fallback={<div>Loading table...</div>}>
+                    <TransactionTableWrapper txn_type={txnType} userId={userId} />
+                </Suspense>
             </div>
         </PageBaseUi>
     )
