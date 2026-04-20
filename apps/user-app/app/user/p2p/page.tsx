@@ -1,5 +1,5 @@
 import { PageBaseUi } from '@repo/ui/PageBaseUi'
-import React from 'react'
+import React, { Suspense } from 'react'
 import { PeerTransferForm } from '../../../components/p2pTransferComponents/PeerTransferForm'
 import { PageTopBar } from '../../../components/PageTopBar'
 import { QuickPayments } from '../../../components/p2pTransferComponents/QuickPayments'
@@ -21,6 +21,16 @@ export default async function page() {
 
     const frequentPeers = await getFrequentPeerTransfer()
 
+    const p2pTxnCols = [
+        { key: "txn_id", label: "Transaction Id" },
+        { key: "amount", label: "Amount" },
+        { key: "txn_status", label: "Status" },
+        { key: "txn_type", label: "Type" },
+        { key: "start_time", label: "Created At" },
+        { key: "end_time", label: "Completed At" },
+        { key: "sender", label: "Sender" },
+        { key: "receiver", label: "Receiver" },
+    ]
     return (
         <PageBaseUi>
             <PageTopBar title='Peer To Peer Transfer' />
@@ -29,8 +39,11 @@ export default async function page() {
                     <PeerTransferForm />
                     <QuickPayments data={frequentPeers} />
                 </div>
-                <RecentPeerTransactionTable peer_txnData={txnData} />
+                <Suspense fallback={<div>Loading Recent Peer transactions...</div>}>
+                    <RecentPeerTransactionTable peer_txnData={txnData} />
+                </Suspense>
             </div>
         </PageBaseUi>
+        
     )
 }

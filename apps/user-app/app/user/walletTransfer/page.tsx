@@ -7,6 +7,7 @@ import { SpendingChart } from '../../../components/walletTransferComp/SpendingCh
 import { getBalanceTxnData } from '../../actions/transaction/action';
 import { unstable_cache } from 'next/cache';
 import { getUserOrThrow } from '../../../lib/auth/utils';
+import { Suspense } from 'react';
 
 export default async function page() {
     const userSession = await getUserOrThrow()
@@ -29,7 +30,9 @@ export default async function page() {
                 </div>
                 <div className='flex items-center gap-2 w-full'>
                     <TransferForm />
-                    <RecentTransactions transactions={txnData} />
+                    <Suspense fallback={<div>Loding</div>}>
+                        <RecentTransactions transactions={txnData} />
+                    </Suspense>
                 </div>
             </div>
         </PageBaseUi>
